@@ -1,0 +1,84 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "alwaysStrict": false,
+    "sourceMap": false,
+    "baseUrl": "./src",
+    "outDir": ".",
+    "forceConsistentCasingInFileNames": true,
+    "noErrorTruncation": true,
+    "noEmitOnError": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "noImplicitOverride": true,
+    "target": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
+    "moduleResolution": "classic",
+    "removeComments": true,
+    "paths": {
+      "*": [
+        "../node_modules/*/src/index",
+        "../node_modules/*/lib/index",
+        "../node_modules/*/index",
+        "../node_modules/*/dist/index",
+        "../node_modules/*/dist/cjs/index",
+        "../node_modules/*",
+        "../node_modules/.pnpm/*/src/index",
+        "../node_modules/.pnpm/*/lib/index",
+        "../node_modules/.pnpm/*/index",
+        "../node_modules/.pnpm/*/dist/index",
+        "../node_modules/.pnpm/*/dist/cjs/index",
+        "../node_modules/.pnpm/*"
+      ]
+    },
+    "plugins": [
+      {
+        "transform": "./compileScripts/transformer.ts",
+        "mapDir": "C:/dev/hdef_ts/maps/maps/unpacked/map.w3x",
+        "entryFile": "C:/dev/hdef_ts/src/game.ts",
+        "outputDir": "C:/dev/hdef_ts/dist/maps/unpacked/map.w3x"
+      },
+      {
+        "transform": "./compileScripts/constant-folding.ts",
+        "enable": false,
+        "cfPrecision": 0
+      }
+    ],
+    "types": [
+      "@typescript-to-lua/language-extensions",
+      "lua-types/core/coroutine",
+      "lua-types/core/global",
+      "lua-types/core/math",
+      "lua-types/core/string",
+      "lua-types/core/table",
+      "lua-types/core/os",
+      "lua-types/special/5.3",
+      "war3-objectdata/dist/cjs/objectdata",
+      "node"
+    ],
+    "typeRoots": [
+      "./compileScripts",
+      "./node_modules/@types",
+      "./node_modules"
+    ]
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "test"
+  ],
+  "tstl": {
+    "luaTarget": "5.3",
+    "noHeader": true,
+    "luaLibImport": "require",
+    "noImplicitSelf": true,
+    "luaBundle": "dist/tstl_output.lua",
+    "luaBundleEntry": "./src/game.ts",
+    "sourceMapTraceback": false,
+    "measurePerformance": true,
+    "tstlVerbose": false
+  }
+}
