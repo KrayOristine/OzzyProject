@@ -1,0 +1,11 @@
+system:
+- changed-files:
+  - any-glob-to-any-file: src/system/**/*
+
+utility:
+- changed-files:
+  - any-glob-to-any-file: src/shared/**/*
+
+compiler:
+- changed-files:
+  - any-glob-to-any-file: compileScripts/**/*

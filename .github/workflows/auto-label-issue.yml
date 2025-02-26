@@ -1,0 +1,37 @@
+name: Label Issues
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label_issues:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Label Issues
+      uses: actions/github-script@v4
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const issueBody = context.payload.issue.body;
+          const issueNumber = context.payload.issue.number;
+          const labelsToAdd = [];
+          if (issueBody.includes('[x] Bug')) {
+            labelsToAdd.push('bug');
+          }
+          if (issueBody.includes('[x] Feature')) {
+            labelsToAdd.push('feature');
+          }
+          if (issueBody.includes('[x] Enhancement')) {
+            labelsToAdd.push('enhancement');
+          }
+          if (issueBody.includes('[x] Request Credits')) {
+            labelsToAdd.push('request credits');
+          }
+          if (labelsToAdd.length > 0) {
+            await github.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: labelsToAdd
+            });
+          }

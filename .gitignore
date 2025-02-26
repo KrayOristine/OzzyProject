@@ -104,3 +104,4 @@ resources/
 
 # Testing buggy stuff
 test/
+launcher.config.json

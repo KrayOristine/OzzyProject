@@ -1,18 +1,20 @@
 
-# Ozzzzymaniac - Mushroom Defense
+# Ozzzzymaniac - Niac Idle
 
->**NOTE**: This repos has been abandoned, please refer to [**CSharp**](https://github.com/KrayOristine/hdef_cs) version of this map project for further update. The reason behind this it because i have hit the limit with the **TypeScript To Lua** transpiler
+ A warcraft 3 reforged (aka. Refunded) maps that coded in [**TypeScript**](https://github.com/microsoft/TypeScript/) and powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
 
- A warcraft 3 reforged defense maps that coded in [**TypeScript**](https://github.com/microsoft/TypeScript/) and powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
+ You can help the me by donating
 
- Current version: 0.0.4
+ [![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/trunghotran) [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/trantrungho71)
 
- [CHANGELOG](./CHANGELOG.md)
+ Current version: 0.0.1
+
+ Any update to this repo are noted in: [CHANGELOG](./CHANGELOG.md)
 
 ## Small infomation
 
- This is a custom version that I (Ozzzzymaniac or in short Ori) made by modify the original framework template codes
- that made by cipherxof (trigger)
+ This is a custom and modified version of the the original template codes
+ from cipherxof (triggerhappy)
  The modified includes map building scripts, newer library, etc.
 
  This modified version features:
@@ -21,8 +23,6 @@
 - Improved compilation time (should now a bit faster, excluded tstl compile time improvement)
 - Maps build now automatically grab resources from `resources` folder
 - FourCC inlining
-- Built-in constant folding/propagation
-- Built-in maps protection and script optimization
 
 ## Map Resources Credit
 

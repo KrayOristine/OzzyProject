@@ -1,11 +1,26 @@
 {
-    "$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
-    "changelog": "@changesets/cli/changelog",
-    "commit": false,
-    "fixed": [],
-    "linked": [],
-    "access": "public",
-    "baseBranch": "master",
-    "updateInternalDependencies": "patch",
-    "ignore": []
+  "$schema": "https://raw.githubusercontent.com/changesets/changesets/refs/heads/main/packages/config/schema.json",
+  "changelog": [
+    "@changesets/cli",
+    null
+  ],
+  "privatePackages": {
+    "tag": true,
+    "version": true
+  },
+  "prettier": false,
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [],
+  "snapshot": {
+    "useCalculatedVersion": true,
+    "prereleaseTemplate": "{tag} {commit}-{timestamp}"
+  },
+  "changedFilePatterns": [
+    "../src/**"
+  ]
 }

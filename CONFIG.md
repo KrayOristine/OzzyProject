@@ -1,6 +1,6 @@
 # Config parameters and it usage
 
-  First a config.json must have all of these parameters, if not create and put them at the root folder of the
+  First a launcher.config.json must have all of these parameters, if not create and put them at the root folder of the
   project and paste all code below
 
 ```json
@@ -12,23 +12,6 @@
     "scripts":{
       "minify": false,
       "optimize": false,
-      "encrypt": {
-        "enable": false,
-
-        "key": "",
-        "salt": ""
-      }
-    },
-
-    "protection":{
-      "removeEditorOnly": false,
-      "scrambleHeader": false,
-      "obfuscateScripts": false,
-      "obfuscateFileName": false,
-      "obfuscateObjectId": false,
-      "fakeScripts": false,
-      "scrambleFile": false,
-      "scrambleRepeat": 1
     }
   },
 
@@ -91,13 +74,9 @@
 
 >NOTE: If it empty or the path is invalid, then by default it will return the maps to the root folder of the project
 
-### `scripts` (`object` contain `minify`, `optimize`, `encrypt`)
+### `scripts` (`object` contain `minify`, `optimize`)
 
   An object the specify what happen to the maps script after it transpiled into lua. It happen as same as the name on the config implies
-
-- `constantFolding` (`boolean`)
-
-  Enable constant folding
 
 - `minify` (`boolean`)
 
@@ -107,11 +86,6 @@
 
   Enable engine optimization, this include constant folding, etc.
 
-- `encrypt` (`object` contain `enabled`, `key`, `salt`) [***WIP***]
-
-  Set "enabled" to true to enable this, this will stay as a simple encryption to protect your script from being learned by newbie and also protect against hacker that too lazy and not passionate enough to cheat the maps. This simply encrypt your code by using the key and salt and decrypt it at runtime.
-  >NOTE: This will heavily hurt the performance as always as any anti-cheat and DRM
-
 For example:
 
 ```json
@@ -119,32 +93,11 @@ For example:
   "compilerOptions":{
     "scripts": {
       "minify": false,
-      "optimize": false,
-      "encrypt": {
-        "enabled": false,
-
-        "key": "",
-        "salt": "" // left empty for random salt
-      }
+      "optimize": false
     }
   }
 }
 ```
-
-### `protection` (`object`) [*WIP*]
-
-  This contain utility thing to protect your maps from being learned by newbie and cheated by hackers who is too lazy to cheat the maps.
-
-  Set the value to true to enable or false to disable
-
-- `removeEditorOnly` (`boolean`): Remove all world editor required files. (These file are only used in world editor)
-- `obfuscateScripts` (`boolean`): This can also optimize the performance a bits by renaming all function except for warcraft ones
-- `scrambleHeader` (`boolean`): Corrupt the file header to prevent mpq editing
-- `obfuscateFileName` (`boolean`): Modify all of the file name except for warcraft required main files.
-- `obfuscateObjectId` (`boolean`): Modify all of the object id of the maps including but not excluded (unit, destructable, items, ability, upgrades, buff)
-- `fakeScripts` (`boolean`): Place a dummy script that won't ever be read by warcraft
-- `scrambleFiles` (`boolean`): Move all file to random position or rename it
-- `scrambleRepeat` (`number`): Set to more than 1 to increase the amount of times the scramble file action will be executed (maximum at 5 to prevent some people that set it to large number for fun)
 
 ## Game Options (game)
 

@@ -1,5 +1,0 @@
-dist
-compileScripts
-node_modules
-test
-*.d.ts

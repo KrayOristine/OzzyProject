@@ -5,7 +5,7 @@ import * as path from "path";
 import { createLogger, format, transports } from "winston";
 import * as ts from "typescript";
 import * as crypt from "crypto";
-const { combine, timestamp, printf } = format;
+const { combine, timestamp, printf, colorize } = format;
 const luamin = require('luamin');
 
 interface IProjectConfig {
@@ -17,21 +17,6 @@ interface IProjectConfig {
       constantFolding: boolean;
       minify: boolean;
       optimize: boolean;
-      encrypt: {
-        enable: boolean;
-        key: string;
-        salt: string;
-      };
-    };
-    protection: {
-      removeEditorOnly: boolean;
-      scrambleHeader: boolean;
-      obfuscateScripts: boolean;
-      obfuscateFileName: boolean;
-      obfuscateObjectId: boolean;
-      fakeScripts: boolean;
-      scrambleFile: boolean;
-      scrambleRepeat: number;
     };
   };
   game: {
@@ -92,24 +77,7 @@ export function loadProjectConfig(): IProjectConfig {
           "constantFolding": false,
           "minify": false,
           "optimize": false,
-          "encrypt": {
-            "enable": false,
-
-            "key": "",
-            "salt": ""
-          }
         },
-
-        "protection":{
-          "removeEditorOnly": false,
-          "scrambleHeader": false,
-          "obfuscateScripts": false,
-          "obfuscateFileName": false,
-          "obfuscateObjectId": false,
-          "fakeScripts": false,
-          "scrambleFile": false,
-          "scrambleRepeat": 1
-        }
       },
 
       "game":{
@@ -333,9 +301,7 @@ export function compileMap(config: IProjectConfig) {
 /**
  * Formatter for log messages.
  */
-const loggerFormatFunc = printf(({ level, message, timestamp }) => {
-  return `[${timestamp.replace("T", " ").split(".")[0]}] ${level}: ${message}`;
-});
+const loggerFormatFunc = (info) => `[${(info.timestamp as string).replace("T", " ").split(".")[0]}] ${info.level}: ${info.message}`;;
 
 /**
  * The logger object.
@@ -344,16 +310,16 @@ export const logger = createLogger({
   transports: [
     new transports.Console({
       format: combine(
-        format.colorize(),
+        colorize(),
         timestamp(),
-        loggerFormatFunc
+        printf(loggerFormatFunc)
       ),
     }),
     new transports.File({
       filename: "project.log",
       format: combine(
-        timestamp(),
-        loggerFormatFunc
+      timestamp(),
+      printf(loggerFormatFunc)
       ),
     }),
   ]
