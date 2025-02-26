@@ -40,7 +40,6 @@ const compat = new FlatCompat({
 });
 
 
-
 /** @type {import('eslint').Linter.Config[]} */
 const eslintConfig = [...compat.extends(config), ...compat.config(ex)];
 

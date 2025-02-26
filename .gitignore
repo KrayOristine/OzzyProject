@@ -95,9 +95,6 @@ typings/
 *.exe
 *.pdb
 
-# VS Code workspace
-*.code-workspace
-
 # Hidden
 maps/
 resources/

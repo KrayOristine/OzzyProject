@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "NiacIdle",
+			"path": "."
+		}
+	],
+	"settings": {
+    "typescript.tsdk": "./node_modules/typescript",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+	}
+}
+
