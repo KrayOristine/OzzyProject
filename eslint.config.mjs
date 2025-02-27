@@ -1,6 +1,5 @@
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import config from "eslint-config-standard";
 import { FlatCompat } from "@eslint/eslintrc"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,6 +40,6 @@ const compat = new FlatCompat({
 
 
 /** @type {import('eslint').Linter.Config[]} */
-const eslintConfig = [...compat.extends(config), ...compat.config(ex)];
+const eslintConfig = [...compat.config(ex)];
 
 export default eslintConfig;

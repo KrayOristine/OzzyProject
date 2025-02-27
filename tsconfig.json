@@ -21,10 +21,10 @@
     },
     "plugins": [
       {
-        "transform": "./compileScripts/plugins/w3-transformer/transformer.ts",
-        "mapDir": "C:/dev/hdef_ts/maps/map.w3x",
-        "entryFile": "C:/dev/hdef_ts/src/main.ts",
-        "outputDir": "C:/dev/hdef_ts/dist/map.w3x"
+        "transform": "./compileScripts/transformer.ts",
+        "mapDir": "./maps/map.w3x",
+        "entryFile": "./src/main.ts",
+        "outputDir": "./dist/map.w3x"
       }
     ],
     "types": [
@@ -39,9 +39,9 @@
       "war3-objectdata/dist/cjs/objectdata",
       "node"
     ],
-    "typeRoots": ["./compileScripts", "./node_modules/@types", "./node_modules"]
+    "typeRoots": ["./types", "./node_modules/@types", "./node_modules"]
   },
-  "include": ["./src/*/**.ts"],
+  "include": ["./src/*/**.ts", "./types/**/*.d.ts"],
   "exclude": ["./test/*/**.ts"],
   "tstl": {
     "luaTarget": "5.3",
@@ -57,10 +57,7 @@
     "luaPlugins": [
       //TODO: Add constant folding
     ],
-    "noResolvePaths": [
-      "typescript",
-      "typescript-to-lua"
-    ]
+    "noResolvePaths": ["typescript", "typescript-to-lua"]
   },
   "ts-node": {
     "compiler": "ts-patch/compiler",

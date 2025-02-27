@@ -21,7 +21,7 @@ type compiletimeResult = string | number | boolean | object | undefined | null;
  * @since 0.0.3
  * @compiletime
  */
-declare function compiletime<T>(func: T): T extends (ctx: compiletimeContext) => infer T ? (T extends ()=> any ? never : (T extends compiletimeResult ? T : never)) : never;
+declare function compiletime<T>(func: T): T extends (ctx: compiletimeContext) => infer R ? (R extends ()=> any ? never : (R extends compiletimeResult ? R : never)) : never;
 
 
 /**

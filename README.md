@@ -21,6 +21,7 @@
 
 - Improved `compiletime`
 - Improved compilation time (should now a bit faster, excluded tstl compile time improvement)
+- Map building now use cache, only file within resources that are different (changed, modified, removed) will be applied
 - Maps build now automatically grab resources from `resources` folder
 - FourCC inlining
 

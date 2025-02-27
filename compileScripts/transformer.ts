@@ -109,7 +109,7 @@ function isAccessingMathStatic(thing: ts.PropertyAccessExpression){
   return (tsu.isIdentifier(thing.name) && tsu.isIdentifier(thing.expression) && thing.expression.escapedText === "Math")
 }
 
-const fourCCAction = {
+const callExpressionAction = {
   FourCC: function(node: ts.CallExpression){
     const args = node.arguments[0];
     if (args.kind != ts.SyntaxKind.StringLiteral) return undefined;
@@ -171,9 +171,9 @@ function processCallExpression(node: ts.CallExpression, check: ts.TypeChecker){
   if (decl.kind != ts.SyntaxKind.FunctionDeclaration || decl.name == null) return undefined;
   const funcName = decl.name.escapedText.toString();
 
-  if (funcName === "FourCC" || funcName === "FourCCArray" || funcName === "FourCCPure") return fourCCAction[funcName](node);
+  if (funcName === "FourCC" || funcName === "FourCCArray" || funcName === "FourCCPure") return callExpressionAction[funcName](node);
 
-  if (funcName === "compiletime") return fourCCAction[funcName](node);
+  if (funcName === "compiletime") return callExpressionAction[funcName](node);
 }
 
 function processImportDeclaration(node: ts.ImportDeclaration, check: ts.TypeChecker, file: ts.SourceFile){
@@ -199,8 +199,6 @@ function processMathAccess(node: ts.PropertyAccessExpression){
 
   return undefined;
 }
-
-
 
 export default function (program: ts.Program, options: ComputeOptions): ts.TransformerFactory<ts.Node> {
 
