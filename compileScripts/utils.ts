@@ -5,8 +5,8 @@ import * as path from "path";
 import { createLogger, format, transports } from "winston";
 import * as ts from "typescript";
 import { xxh3 } from "@node-rs/xxhash";
+import lm from "./luamin/luamin";
 const { combine, timestamp, printf, colorize } = format;
-const luamin = require("luamin");
 
 interface IProjectConfig {
   compilerOptions: {
@@ -308,7 +308,30 @@ export async function compileMap(config: IProjectConfig) {
 
     if (config.compilerOptions.scripts.minify) {
       logger.info(`Minifying script...`);
-      contents = luamin.minify(contents.toString());
+       let minified = lm.minify(contents.toString(), {
+        minifyAllGlobalVars: true,
+        minifyTableKeyStrings: true,
+        newlineSeparator: false,
+        minifyMemberNames: true,
+        minifyAssignedGlobalVars: true,
+        minifyGlobalFunctions: true,
+        randomIdentifiers: true,
+        preservedGlobalFunctions: [
+          // warcraft expect these two, so we preserve it to prevent it being minified
+          'main',
+          'config',
+        ],
+        preservedGlobalVars: [
+          // i dont think we need to preserve this
+        ]
+      }) ?? '';
+
+      if (minified.length <= 0){
+        logger.error("Cant minify script!");
+        throw new Error("Cant minify script");
+      }
+
+      contents = minified;
     }
     //contents = luamin.minify(contents);
     fs.writeFileSync(mapLua, contents);

@@ -51,6 +51,8 @@ import {
   ParenthesizedExpression,
 } from "./ast";
 
+import {Maybe} from "../helper";
+
 export const version = "0.2.1";
 
 let input: string, options: ParserOptions, length: number, features: LuaFeatures, encodingMode: EncodingMode;
@@ -113,8 +115,7 @@ interface ParserOptions {
    */
   luaVersion: "5.1" | "5.2" | "5.3" | "LuaJIT";
   /** Encoding mode: how to interpret code units higher than U+007F in input */
-  encodingMode: string;
-
+  encodingMode: "pseudo-latin1" | "none" | "x-user-defined";
   /**
    * Preserve parenthesis
    */
@@ -2863,7 +2864,7 @@ declare const exports: any;
  *     const parser = require('luaparser');
  *     parser.parse('i = 0');
  */
-export function parse(_input?: string | Partial<ParserOptions>, _options?: Partial<ParserOptions>): Chunk | any {
+export function parse(_input?: string | Partial<ParserOptions>, _options?: Partial<ParserOptions>): Maybe<Chunk> {
   if ("undefined" === typeof _options && "object" === typeof _input) {
     _options = _input;
     _input = undefined;
