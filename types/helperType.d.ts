@@ -1,3 +1,5 @@
+// these helper should be global
+
 declare type Func<TResult> = () => TResult;
 declare type Func1<T1,TResult> = (p1: T1) => TResult;
 declare type Func2<T1,T2,TResult> = (p1: T1, p2: T2) => TResult;
@@ -11,3 +13,12 @@ type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] exte
   : Enumerate<N, [...Acc, Acc['length']]>
 
 type NumberRange<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>
+declare type Maybe<T> = T | null | undefined;
+
+declare type Spread<T1, T2> = T2 & Omit<T1, keyof T2>;
+
+declare type StrictOmit<T, K extends keyof T> = { [P in Exclude<keyof T, K>]: T[P]; };
+
+declare type Except<T, V> = T extends V ? never : T;
+
+declare type ExtractArray<T extends any[]> = (T)[number];

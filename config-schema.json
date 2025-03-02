@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config Schema",
+  "description": "Ozzy Idle compiler config schema",
+  "type": "object",
+  "properties": {
+    "compilerOptions":{
+      "type": "object",
+      "description": "Compiler configuration",
+      "properties":{
+        "baseDir":{
+          "type": "string",
+          "description": "Path to your base maps"
+        },
+        "outDir":{
+          "type": "string",
+          "description": "Path to the output directory"
+        },
+        "mapName":{
+          "type":"string",
+          "description": "Name of the target maps case-sensitive"
+        },
+        "script":{
+          "type": "object",
+          "description": "Options for script generation",
+          "properties": {
+            "minify":{
+              "type": "boolean",
+              "description": "Minify result map script?",
+              "default": "false"
+            },
+            "inlineConstant": {
+              "type": "boolean",
+              "description": "Inline all constant value if possible",
+              "default": "false"
+            },
+            "propagateMath": {
+              "type": "boolean",
+              "description": "Pre-process simple math equation and inline it if possible",
+              "default": "false"
+            }
+          }
+        },
+        "building": {
+          "type": "object",
+          "description": "Options for map binary building",
+          "properties":{
+            "cache":{
+              "type": "boolean",
+              "description": "Utilize caching while building",
+              "default": "true"
+            }
+          }
+        }
+      },
+      "required": ["baseDir", "outDir", "mapName"]
+    },
+    "game":{
+      "type": "object",
+      "description": "Game executable configuration",
+      "properties":{
+        "path":{
+          "type":"string",
+          "description": "Path to your warcraft reforged executable"
+        },
+        "extraArgs":{
+          "type": "array",
+          "description": "Additional argument you want to pass into the executable",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": ["game", "compilerOptions"]
+}

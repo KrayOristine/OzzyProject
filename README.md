@@ -1,5 +1,5 @@
 
-# Ozzzzymaniac - Niac Idle
+# Ozzzzymaniac - Ozzy Idle
 
  A warcraft 3 reforged (aka. Refunded) maps that coded in [**TypeScript**](https://github.com/microsoft/TypeScript/) and powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
 
@@ -9,34 +9,38 @@
 
  Current version: 0.0.1
 
- Any update to this repo are noted in: [CHANGELOG](./CHANGELOG.md)
+ Any update to this maps are noted in: [CHANGELOG](./CHANGELOG.md)
 
 ## Small infomation
 
- This is a custom and modified version of the the original template codes
- from cipherxof (triggerhappy)
- The modified includes map building scripts, newer library, etc.
+ This is a customized and modified version of the the original template codes
+ from cipherxof (triggerhappy), all changes has been made to it are all from me
+ and other contributor (if they even do contribute at least)
 
  This modified version features:
 
 - Improved `compiletime`
-- Improved compilation time (should now a bit faster, excluded tstl compile time improvement)
-- Map building now use cache, only file within resources that are different (changed, modified, removed) will be applied
-- Maps build now automatically grab resources from `resources` folder
-- FourCC inlining
+- Improved compilation time (excluding tstl transpilation time)
+- Map building now utilize caching (can be disabled, enabled by default)
+- Maps building now automatically grab resources from `resources` folder as if it was part of the maps
+- FourCC inlining, extra FourCC utility
+- Additional type helper for using
+- Tailored to warcraft 3 usage and improved lua minify, lua parse
+- Reduced dependencies
+- Additional preprocessor function (well, obviously tailored to this map)
 
 ## Map Resources Credit
 
-  Here the list of all the resources that this map used and from multiple origin, if your name does not appear in here. Just file an issue in the github repository and please label it as `missing resources` for faster response time
+  Here the list of all the resources that this map used and from multiple origin, if your name does not appear in here. Just file an issue in the github repository
 
 - [The Hiveworkshop](./RESOURCES_HIVE.md)
 
 ## Original Template
 
-[Warcraft3 TS Template](https://github.com/cipherxof/wc3-ts-template) - by [cipherxof (trigger)](https://github.com/cipherxof)
+[Warcraft 3 TS Template](https://github.com/cipherxof/wc3-ts-template) - by [cipherxof (triggerhappy)](https://github.com/cipherxof)
 
 ## Credit
 
-This maps powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
+This maps is powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
 
 Most of this maps resources is from [**The Hiveworkshop**](https://hiveworkshop.com/)

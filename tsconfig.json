@@ -17,32 +17,30 @@
     "removeComments": true,
     "paths": {
       "@/*": ["./src/*"],
-      "#/*": ["./node_modules/*"]
+      "!/*": ["./node_modules/*"],
+      "#/*": ["./*"]
     },
     "plugins": [
       {
         "transform": "./compileScripts/transformer.ts",
         "mapDir": "./maps/map.w3x",
-        "entryFile": "./src/main.ts",
+        "entryFile": "./src/game.ts",
         "outputDir": "./dist/map.w3x"
       }
     ],
     "types": [
       "@typescript-to-lua/language-extensions",
-      "lua-types/core/coroutine",
-      "lua-types/core/global",
-      "lua-types/core/math",
-      "lua-types/core/string",
-      "lua-types/core/table",
-      "lua-types/core/os",
-      "lua-types/special/5.3",
-      "war3-objectdata/dist/cjs/objectdata",
-      "node"
+      "lua.d.ts",
+      "common.j.d.ts",
+      "helperType.d.ts",
+      "hiddenNative.d.ts",
+      "war3-transformer.d.ts",
+      "war3map.d.ts",
     ],
-    "typeRoots": ["./types", "./node_modules/@types", "./node_modules"]
+    "typeRoots": ["./types", "./node_modules/@types"]
   },
-  "include": ["./src/*/**.ts", "./types/**/*.d.ts"],
-  "exclude": ["./test/*/**.ts"],
+  "include": ["./src/**/*.ts", "./types/**/*.d.ts"],
+  "exclude": ["./test/**/*.ts"],
   "tstl": {
     "luaTarget": "5.3",
     "buildMode": "default",

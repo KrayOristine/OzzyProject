@@ -3,12 +3,10 @@ import { writeFileSync } from "fs";
 import * as fs from "fs-extra";
 import * as path from "path";
 import { createLogger, format, transports } from "winston";
-import * as ts from "typescript";
-import { xxh3 } from "@node-rs/xxhash";
-import lm from "./luamin/luamin";
+import ts from "typescript";
 const { combine, timestamp, printf, colorize } = format;
 
-interface IProjectConfig {
+export interface IProjectConfig {
   compilerOptions: {
     baseUrl: string;
     outDir: string;
@@ -25,14 +23,14 @@ interface IProjectConfig {
   };
 }
 
-interface TSConfig {
+export interface TSConfig {
   compilerOptions: CompilerOptions;
   include: string[];
   exclude: any[];
   tstl: Tstl;
 }
 
-interface Tstl {
+export interface Tstl {
   luaTarget: string;
   noHeader: boolean;
   luaLibImport: string;
@@ -48,7 +46,7 @@ export interface CompilerOptions extends ts.CompilerOptions {
   plugins: Plugin[];
 }
 
-interface Plugin extends ts.PluginImport {
+export interface Plugin extends ts.PluginImport {
   transform: string;
   enable: boolean;
   cfPrecision: number;
@@ -162,7 +160,63 @@ export function processScriptIncludes(contents: string) {
   return contents;
 }
 
-function updateTSConfig(mapFolder: string) {
+function capture(source: string, regex: RegExp, native: string[], variable: string[], func: string[]){
+  let m = regex.exec(source);
+  while (m !== null) {
+    if (m.index === regex.lastIndex) {
+        regex.lastIndex++;
+    }
+
+    // https://regex101.com/r/Zy6QfV/1 -- saved for future
+    const name = m[16];
+    const isConst = m[3].toLowerCase() == "constant"; // what do you expect me to do?
+    const isFunc = m[4].toLowerCase() == "function";
+    const isNative = m[5].toLowerCase() == "native" || m[11].toLowerCase() == "native";
+    const isVar = m[7] != undefined || m[13] != undefined;
+    // which kind
+    if (isVar){
+      variable.push(name);
+    } else if (isFunc) {
+      func.push(name);
+    } else if (isNative) {
+      native.push(name);
+    }
+
+    m = regex.exec(source);
+  }
+}
+
+const enum Inliner {
+  ValidType = "string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect"
+}
+
+export function getPreservedName(): {native: string[], variable: string[], func: string[]} {
+  if (fs.existsSync("./preserveNameCache.json")){
+    return JSON.parse(fs.readFileSync("./preserveNameCache.json", {encoding: 'utf8'}));
+  }
+
+  const bliz = fs.readFileSync("./Blizzard.j", {encoding: "utf-8"});
+  const nat = fs.readFileSync("./common.j", {encoding: "utf-8"});
+
+  const regexA = new RegExp(`^([\\t ]+)?((constant )|(function )|(native )|((${Inliner.ValidType}) (array )?))([ \\t]+)?((native )|((${Inliner.ValidType}) (array )?))?([ \\t]+)?(\\w+)(([ \\t]+)(takes|\\=)? [, \\w\\d\\t\\"\\'\\(\\)]+)?\\n?$`, "gm");
+
+  //const regexB = /^([\t ]+)?((constant )|(function )|(native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))([ \t]+)?((native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))?([ \t]+)?(\w+)(([ \t]+)(takes|\=)? [, \w\d\t\"\'\(\)]+)?\n?$/mg
+
+  const native: string[] = [];
+  const func: string[] = [];
+  const variable: string[] = [];
+
+  capture(nat, regexA, native, variable, func);
+  capture(bliz, regexA, native, variable, func);
+
+  const result = {native: native, func:func, variable:variable};
+
+  fs.writeFileSync("./preserveNameCache.json", JSON.stringify(result))
+
+  return result;
+}
+
+export function updateTSConfig(mapFolder: string) {
   const tsconfig = loadTSConfig();
   const plugin = tsconfig.compilerOptions.plugins;
 
@@ -175,7 +229,7 @@ function updateTSConfig(mapFolder: string) {
   writeFileSync("tsconfig.json", JSON.stringify(tsconfig, undefined, 2));
 }
 
-function updateProjectConfig() {
+export function updateProjectConfig() {
   const project = loadProjectConfig();
 
   project.compilerOptions.mapName = getMapName();
@@ -192,154 +246,10 @@ export function getMapName() {
   return cache.get("mapName");
 }
 
-function cutMapFile(filePath: string) {
+export function cutMapFile(filePath: string) {
   const split = filePath.split("\\");
 
   return split.slice(split.indexOf(getMapName()) + 1).join("/");
-}
-
-interface MapFileCache {
-  // filePath: "hash"
-  [filePath: string]: string;
-}
-
-async function copyAndCache(source: string, target: string, cache: string, ignoreCache: boolean = false) {
-  let tryNum = 0;
-  const cacheFile = fs.readFileSync(cache, { encoding: "utf8", flag: "a+" });
-  const cached: MapFileCache = JSON.parse(cacheFile === "" ? "{}" : cacheFile);
-  const diff: Record<string, "hash" | "removed"> = {};
-  while (true) {
-    fs.copy(source, target, {
-      filter: async function (source, _) {
-        if (fs.statSync(source).isDirectory()) return Promise.resolve<boolean>(true);
-
-        const mapFile = cutMapFile(source);
-        return new Promise<boolean>((resolve, reject) => {
-          fs.readFile(source, { encoding: "utf8" })
-            .then((v) => {
-              const mapHash = xxh3.xxh128(v, 696969n).toString(16);
-
-              if (cached[mapFile] === undefined || cached[mapFile] === null) {
-                cached[mapFile] = mapHash;
-                diff[mapFile] = "removed";
-
-                return resolve(true);
-              }
-
-              if (cached[mapFile] == undefined || cached[mapFile] != mapHash) {
-                cached[mapFile] = mapHash;
-                diff[mapFile] = "hash";
-
-                return resolve(true);
-              }
-
-              return resolve(false);
-            })
-            .catch((e) => {
-              reject(e);
-            });
-        });
-      },
-    })
-      .then(() => {
-        for (var k in diff) {
-          if (diff[k] === "removed") {
-            delete cached[k];
-          }
-        }
-
-        fs.writeFile(cache, JSON.stringify(cached, undefined, ""));
-      })
-      .catch((e) => {
-        logger.error("Error while copying: ", e);
-        tryNum++;
-        if (tryNum >= 3) return;
-        logger.warn("Trying again...");
-      });
-  }
-}
-
-export async function mapBuildCache(mapUrl: string, mapDest: string) {
-  const cachePath = mapDest + "cache.json";
-  await copyAndCache(mapUrl, mapDest + getMapName(), cachePath);
-}
-
-/**
- *
- */
-export async function compileMap(config: IProjectConfig) {
-  if (!config.compilerOptions.baseUrl || config.compilerOptions.baseUrl === "") {
-    logger.error(`[config.json]: baseUrl is empty!`);
-    return false;
-  }
-
-  const tsLua = `${config.compilerOptions.outDir}/dist/tstl_output.lua`;
-
-  if (fs.existsSync(tsLua)) {
-    fs.unlinkSync(tsLua);
-  }
-
-  logger.info(`Building "${config.compilerOptions.baseUrl}"...`);
-  await mapBuildCache(config.compilerOptions.baseUrl, `${config.compilerOptions.outDir}/dist/`);
-
-  logger.info("Updating configuration...");
-  updateTSConfig(config.compilerOptions.baseUrl);
-  updateProjectConfig();
-
-  logger.info("Transpiling code...");
-  execSync("tstl -p tsconfig.json", { stdio: "inherit" });
-
-  if (!fs.existsSync(tsLua)) {
-    logger.error(`Could not find "${tsLua}"`);
-    return false;
-  }
-
-  // Merge the TSTL output with war3map.lua
-  const mapLua = `./${config.compilerOptions.baseUrl}/war3map.lua`;
-
-  if (!fs.existsSync(mapLua)) {
-    logger.error(`Could not find "${mapLua}"`);
-    return false;
-  }
-
-  try {
-    let contents = fs.readFileSync(mapLua).toString() + fs.readFileSync(tsLua).toString();
-    contents = processScriptIncludes(contents);
-
-    if (config.compilerOptions.scripts.minify) {
-      logger.info(`Minifying script...`);
-       let minified = lm.minify(contents.toString(), {
-        minifyAllGlobalVars: true,
-        minifyTableKeyStrings: true,
-        newlineSeparator: false,
-        minifyMemberNames: true,
-        minifyAssignedGlobalVars: true,
-        minifyGlobalFunctions: true,
-        randomIdentifiers: true,
-        preservedGlobalFunctions: [
-          // warcraft expect these two, so we preserve it to prevent it being minified
-          'main',
-          'config',
-        ],
-        preservedGlobalVars: [
-          // i dont think we need to preserve this
-        ]
-      }) ?? '';
-
-      if (minified.length <= 0){
-        logger.error("Cant minify script!");
-        throw new Error("Cant minify script");
-      }
-
-      contents = minified;
-    }
-    //contents = luamin.minify(contents);
-    fs.writeFileSync(mapLua, contents);
-  } catch (err) {
-    logger.error(err.toString());
-    return false;
-  }
-  return true;
 }
 
 /**

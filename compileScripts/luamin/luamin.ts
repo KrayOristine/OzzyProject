@@ -275,7 +275,6 @@ var identifiersInUse: Set<string>;
 var shortenedGlobalIdentifiers: Set<string>;
 var identifierLength: number;
 var identifierList: string[];
-var sinceLastJump: number;
 var generateIdentifierRandom = function(originalName: string): string {
   // Preserve `self` in methods
   if (originalName == "self") {
@@ -304,8 +303,8 @@ var generateIdentifierRandom = function(originalName: string): string {
   identifierMap[originalName] = iden;
 
   return iden;
-
 };
+
 var generateIdentifierNormal = function (originalName: string): string {
   // Preserve `self` in methods
   if (originalName == "self") {
@@ -952,7 +951,6 @@ var minify = function (code: string, preferences: LMOptions) {
   currentIdentifier = "9";
   // yes
   identifierLength = 1;
-  sinceLastJump = 1;
 
   //add preserved global name
   if (preferences.preservedGlobalFunctions.length > 0) {
