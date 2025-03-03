@@ -71,23 +71,37 @@ let mouseSaneY = 0;
 
 let globalFrame = 0;
 
-// We begin hot! This here are the parameters for a Cybernetic Quadratic Lattice.
-// Cybernetic not in the sense of science fiction, but in the etymology's.
-// Cybernetic as in derived from principles of circular causal processes.
-// As in, self-centering quadratic lattice.
 
-// Fun fact: Supposedly, this is a Grandmaster-level coding technique.
-// Meaning that if you know how to build one and how to use it, you are in the 0.1 percentile of coders! yay.
 
-// I shall explain in further detail what it does when we get to the functions.
+const enum Inliner {
+  // We begin hot! This here are the parameters for a Cybernetic Quadratic Lattice.
+  // Cybernetic not in the sense of science fiction, but in the etymology's.
+  // Cybernetic as in derived from principles of circular causal processes.
+  // As in, self-centering quadratic lattice.
+  // Fun fact: Supposedly, this is a Grandmaster-level coding technique.
+  // Meaning that if you know how to build one and how to use it, you are in the 0.1 percentile of coders! yay.
+  // I shall explain in further detail what it does when we get to the functions.
+  TRACKER_ERROR_BOUND = 0.15,
 
-let TRACKER_ERROR_BOUND = 0.15;
+  baseSize = 0.002,
+  trackerLevelsOffset = 6,
+  trackerLevels = trackerLevelsOffset - 1,
 
-const baseSize = 0.002;
-const TRACKER_LEVELS = 6;
+  // These two should always be integer powers of 2.
+  // Changing them will make the stabilization stronger/weaker, and the coords update lag bigger/smaller.
+  trackerBuffer = 32,
+  trackerBufferPeriod = 32,
+
+  ts3 = baseSize * 3,
+  ts33 = baseSize * 3 * 3,
+  ts337 = baseSize * 3 * 3 * 7,
+  ts3373 = baseSize * 3 * 3 * 7 * 3,
+  ts33733 = baseSize * 3 * 3 * 7 * 3 * 3,
+}
+
 let trackerTilesGaps = [3, 3, 3, 1, 1, 1];
 let trackerTilesClms = [9, 9, 7, 3, 3, 3];
-let trackerTilesSizes = [baseSize, 3.0 * baseSize, 3.0 * 3.0 * baseSize, 7.0 * 3.0 * 3.0 * baseSize, 3.0 * 7.0 * 3.0 * 3.0 * baseSize, 3.0 * 3.0 * 7.0 * 3.0 * 3.0 * baseSize];
+let trackerTilesSizes = [Inliner.baseSize, Inliner.ts3, Inliner.ts33, Inliner.ts337, Inliner.ts3373, Inliner.ts33733];
 
 // These are the arrays for the frames used in the lattice. It uses SIMPLEFRAMES, in fact.
 let trackerTilesButtons: framehandle[] = [];
@@ -98,10 +112,7 @@ let trackerTilesN = 0;
 let trackerRawX = 0.0;
 let trackerRawY = 0.0;
 
-// These two should always be integer powers of 2.
-// Changing them will make the stabilization stronger/weaker, and the coords update lag bigger/smaller.
-let TRACKER_BUFFER_N = 32;
-let TRACKER_BUFFER_PERIOD_FRAMES = 32;
+
 
 let curTrackerBufferInd = -1;
 let trackerXBuffer: number[] = [];
@@ -158,7 +169,7 @@ export function GetMouseFrameY() {
   return mouseFrameY;
 }
 
-export function GetMouseFrame(): LuaMultiReturn<[number, number]> {
+export function GetMouseFrame() {
   return $multi(mouseFrameX, mouseFrameY);
 }
 
@@ -230,7 +241,7 @@ const MoveTracker = (x: number, y: number) => {
 
   // Check if the tracker was catastrophically shaken.
   // If it left the screen, reposition it on the center and try again.
-  if (mouseSaneX > 1.0 + TRACKER_ERROR_BOUND || mouseSaneY > 1.0 + TRACKER_ERROR_BOUND || mouseSaneX < -TRACKER_ERROR_BOUND || mouseSaneY < -TRACKER_ERROR_BOUND)
+  if (mouseSaneX > 1.0 + Inliner.TRACKER_ERROR_BOUND || mouseSaneY > 1.0 + Inliner.TRACKER_ERROR_BOUND || mouseSaneX < -Inliner.TRACKER_ERROR_BOUND || mouseSaneY < -Inliner.TRACKER_ERROR_BOUND)
     return MoveTracker(0.0, 0.0);
 
   trackerRawX = x;
@@ -244,7 +255,7 @@ const MoveTracker = (x: number, y: number) => {
   // Here is the centering loops.
   // They may look a little scary, but they are big pushovers.
   ind = 0;
-  for (const lvl of $range(1, TRACKER_LEVELS)) {
+  for (const lvl of $range(0, Inliner.trackerLevels)) {
     curSize = trackerTilesSizes[lvl];
     curGap = trackerTilesGaps[lvl];
     clms = trackerTilesClms[lvl];
@@ -268,7 +279,7 @@ const MoveTracker = (x: number, y: number) => {
 
 // Also very simple. Just sets visibility for all tiles in the tracker.
 const SetTrackerVisible = (val: boolean) => {
-  for (const i of $range(1, trackerTilesN)) {
+  for (const i of $range(0, trackerTilesN-1)) {
     BlzFrameSetVisible(trackerTilesButtons[i], val);
   }
 };
@@ -281,8 +292,8 @@ const SetTrackerVisible = (val: boolean) => {
 const UpdateTracker = () => {
   let curSize, curGap, gapInd0, gapInd1, clms, clmCenter, ind;
 
-  ind = 0;
-  for (const lvl of $range(1, TRACKER_LEVELS)) {
+  ind = -1;
+  for (const lvl of $range(0, Inliner.trackerLevels)) {
     curSize = trackerTilesSizes[lvl];
     curGap = trackerTilesGaps[lvl];
     clms = trackerTilesClms[lvl];
@@ -353,8 +364,8 @@ const CreateTrackerTooltip = (button: framehandle) => {
 const CreateTracker = () => {
   let button, curSize, curGap, gapInd0, gapInd1, clms, ind;
 
-  ind = 0;
-  for (const lvl of $range(1, TRACKER_LEVELS)) {
+  ind = -1;
+  for (const lvl of $range(0, Inliner.trackerLevels)) {
     curSize = trackerTilesSizes[lvl];
     curGap = trackerTilesGaps[lvl];
     clms = trackerTilesClms[lvl];
@@ -425,8 +436,8 @@ const TimerTick = () => {
     screenAspectRatio = screenWid / screenHei;
   }
 
-  if ((globalFrame & (TRACKER_BUFFER_PERIOD_FRAMES - 1)) == 1) {
-    curTrackerBufferInd = (curTrackerBufferInd + 1) & (TRACKER_BUFFER_N - 1);
+  if ((globalFrame & (Inliner.trackerBufferPeriod - 1)) == 1) {
+    curTrackerBufferInd = (curTrackerBufferInd + 1) & (Inliner.trackerBuffer - 1);
 
     trackerXBuffer[curTrackerBufferInd + 1] = trackerRawX;
     trackerYBuffer[curTrackerBufferInd + 1] = trackerRawY;
@@ -476,8 +487,8 @@ export function InitMouseTracker() {
   BlzSetMousePos(screenWid >> 1, screenHei >> 1);
   CreateTracker();
 
-  Fill(trackerXBuffer, TRACKER_BUFFER_N, 0.0);
-  Fill(trackerYBuffer, TRACKER_BUFFER_N, 0.0);
+  Fill(trackerXBuffer, Inliner.trackerBuffer, 0.0);
+  Fill(trackerYBuffer, Inliner.trackerBuffer, 0.0);
 
   timTick = CreateTimer();
   TimerStart(timTick, 0.001, true, TimerTick);

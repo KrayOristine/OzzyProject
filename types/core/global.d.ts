@@ -49,7 +49,7 @@ declare function assert<V, A extends any[]>(
  *
  * Performs a full garbage-collection cycle. This is the default option.
  */
-declare function collectgarbage(opt?: 'collect'): void;
+// declare function collectgarbage(opt?: 'collect'): void;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
@@ -58,7 +58,7 @@ declare function collectgarbage(opt?: 'collect'): void;
  * Stops automatic execution of the garbage collector. The collector will run
  * only when explicitly invoked, until a call to restart it.
  */
-declare function collectgarbage(opt: 'stop'): void;
+// declare function collectgarbage(opt: 'stop'): void;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
@@ -66,7 +66,7 @@ declare function collectgarbage(opt: 'stop'): void;
  *
  * Restarts automatic execution of the garbage collector.
  */
-declare function collectgarbage(opt: 'restart'): void;
+// declare function collectgarbage(opt: 'restart'): void;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
@@ -75,7 +75,7 @@ declare function collectgarbage(opt: 'restart'): void;
  * Sets arg as the new value for the pause of the collector (see §2.5). Returns
  * the previous value for pause.
  */
-declare function collectgarbage(opt: 'setpause', arg: number): number;
+// declare function collectgarbage(opt: 'setpause', arg: number): number;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
@@ -84,7 +84,7 @@ declare function collectgarbage(opt: 'setpause', arg: number): number;
  * Sets arg as the new value for the step multiplier of the collector (see
  * §2.5). Returns the previous value for step.
  */
-declare function collectgarbage(opt: 'setstepmul', arg: number): number;
+// declare function collectgarbage(opt: 'setstepmul', arg: number): number;
 
 /**
  * This function is a generic interface to the garbage collector. It performs
@@ -96,7 +96,7 @@ declare function collectgarbage(opt: 'setstepmul', arg: number): number;
  * (in KBytes) had been allocated by Lua. Returns true if the step finished a
  * collection cycle.
  */
-declare function collectgarbage(opt: 'step', arg: number): boolean;
+// declare function collectgarbage(opt: 'step', arg: number): boolean;
 
 
 /**

@@ -41,7 +41,7 @@ declare namespace string {
      * so that a later load on this string returns a copy of the function (but
      * with new upvalues).
      */
-    function dump(func: Function): string;
+    // function dump(func: Function): string;
 
     /**
      * Looks for the first match of pattern (see §6.4.1) in the string s. If it

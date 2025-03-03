@@ -22,3 +22,5 @@ declare type StrictOmit<T, K extends keyof T> = { [P in Exclude<keyof T, K>]: T[
 declare type Except<T, V> = T extends V ? never : T;
 
 declare type ExtractArray<T extends any[]> = (T)[number];
+
+declare const floorDiv: (a: number, b: number)=> LuaFloorDivision<number, number, number>;

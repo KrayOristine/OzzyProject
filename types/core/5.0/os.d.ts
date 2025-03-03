@@ -103,33 +103,33 @@ declare namespace os {
      * is system-dependent. If command is absent, then it returns nonzero if a
      * shell is available and zero otherwise.
      */
-    function execute(command?: string): number;
+    // function execute(command?: string): number;
 
     /**
      * Calls the C function exit, with an optional code, to terminate the host
      * program. The default value for code is the success code.
      */
-    function exit(code?: number): never;
+    // function exit(code?: number): never;
 
     /**
      * Returns the value of the process environment variable varname, or nil if
      * the variable is not defined.
      */
-    function getenv(varname: string): string | undefined;
+    // function getenv(varname: string): string | undefined;
 
     /**
      * Deletes the file (or empty directory, on POSIX systems) with the given
      * name. If this function fails, it returns nil, plus a string describing the
      * error and the error code. Otherwise, it returns true.
      */
-    function remove(filename: string): LuaMultiReturn<[true] | [undefined, string]>;
+    // function remove(filename: string): LuaMultiReturn<[true] | [undefined, string]>;
 
     /**
      * Renames the file or directory named oldname to newname. If this function
      * fails, it returns nil, plus a string describing the error and the error
      * code. Otherwise, it returns true.
      */
-    function rename(oldname: string, newname: string): LuaMultiReturn<[true] | [undefined, string]>;
+    // function rename(oldname: string, newname: string): LuaMultiReturn<[true] | [undefined, string]>;
 
     /**
      * Sets the current locale of the program. locale is a system-dependent string
@@ -148,10 +148,10 @@ declare namespace os {
      * This function may be not thread safe because of its reliance on C function
      * setlocale.
      */
-    function setlocale(
-        locale?: string,
-        category?: 'all' | 'collate' | 'ctype' | 'monetary' | 'numeric' | 'time'
-    ): string | undefined;
+    // function setlocale(
+    //     locale?: string,
+    //     category?: 'all' | 'collate' | 'ctype' | 'monetary' | 'numeric' | 'time'
+    // ): string | undefined;
 
     /**
      * Returns the current time when called without arguments, or a time
@@ -209,5 +209,5 @@ declare namespace os {
      * When possible, you may prefer to use io.tmpfile, which automatically
      * removes the file when the program ends.
      */
-    function tmpname(): string;
+    // function tmpname(): string;
 }

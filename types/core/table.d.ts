@@ -17,7 +17,7 @@ declare namespace table {
      * empty string, the default for i is 1, and the default for j is #list. If i
      * is greater than j, returns the empty string.
      */
-    function concat(list: (string | number)[], sep?: string, i?: number, j?: number): string;
+    function concat(list: (string | number)[] | LuaTable, sep?: string, i?: number, j?: number): string;
 
     /**
      * Inserts element value at position pos in list, shifting up the elements

@@ -8,7 +8,7 @@
  * part, so that it multiplied by 1024 gives the exact number of bytes in use by
  * Lua (except for overflows).
  */
-declare function collectgarbage(opt: 'count'): number;
+// declare function collectgarbage(opt: 'count'): number;
 
 declare namespace math {
     /**
@@ -75,7 +75,7 @@ declare namespace string {
      * use the debug library to serialize and reload the upvalues of a function in
      * a way adequate to your needs.)
      */
-    function dump(func: Function, strip?: boolean): string;
+    // function dump(func: Function, strip?: boolean): string;
 
     /**
      * Returns a binary string containing the values v1, v2, etc. packed (that is,

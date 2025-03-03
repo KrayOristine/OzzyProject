@@ -161,6 +161,8 @@ interface LuaMetatable<
      * the metatable has a __gc field pointing to a function, that function is
      * first invoked, passing the userdata to it. The __gc metamethod is not
      * called for tables.
+     *
+     * @note Useless on warcraft 3 environment
      */
     __gc?(this: T): void;
 }

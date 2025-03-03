@@ -10,7 +10,7 @@ declare interface compiletimeContext {
   log: (...args: any) => void;
 }
 
-type compiletimeResult = string | number | boolean | object | undefined | null;
+type compiletimeResult = string | number | boolean | object | void;
 
 /**
  * Define a function that will be run on compile time in Node environment.
