@@ -25,6 +25,7 @@
     "test": "ts-node compileScripts/test.ts",
     "compile": "ts-node compileScripts/build.ts",
     "compile:defs": "ts-node compileScripts/defs.ts",
+    "ci": "pnpm run lint && ts-node compileScripts/ci.ts",
     "build": "pnpm run lint && pnpm run compile",
     "dev": "pnpm run build && pnpm run test",
     "rc": "pnpm changeset pre enter rc && pnpm changeset version && pnpm changeset publish",
