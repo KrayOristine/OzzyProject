@@ -87,6 +87,7 @@ declare let _ENV: Record<string, any>;
 // }
 
 declare namespace table {
+
     /**
      * Returns the elements from the given list. This function is equivalent to
      *

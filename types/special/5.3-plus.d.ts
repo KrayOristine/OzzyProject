@@ -149,7 +149,7 @@ declare namespace utf8 {
      */
     function codes<S extends string>(
         s: S
-    ): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
+    ): LuaIterable<LuaMultiReturn<[number, number]>>;
 
     /**
      * Returns the codepoints (as integers) from all characters in s that start

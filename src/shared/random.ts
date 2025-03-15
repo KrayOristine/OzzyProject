@@ -22,12 +22,10 @@ class PRandom {
   static create(seed: string, entropy: boolean) {
     const key: number[] = entropy ? this.globalEntropy.slice() : [];
     PRandom.mixkey(PRandom.str(seed), key);
-    const obj = PRandom.stack.pop();
-    if (obj == undefined) {
+    if (this.stack.length <= 0)
       return new PRandom().init(key, entropy);
-    }
 
-    return obj.init(key, entropy);
+    return PRandom.stack.pop()!.init(key, entropy);
   }
 
   static clean(v: PRandom) {

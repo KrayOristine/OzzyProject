@@ -1,45 +1,39 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc"
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+//@ts-check
 
-/**
- * @type {import('eslint').Linter.Config}
- */
-const ex = {
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
+import es from "@eslint/js";
+import ts from "typescript-eslint";
+
+
+
+export default ts.config({
+  plugins: {
+    '@typescript-eslint': ts.plugin,
+  },
+  languageOptions: {
+    parser: ts.parser,
+    parserOptions:{
+      projectService: true,
+      tsconfigRootDir: import.meta.dirname
+    },
     ecmaVersion: 2022,
-    sourceType: "module",
+    globals: {
+      "document": "off",
+      "navigator": "off",
+      "window": "off"
+    },
   },
-  plugins: ["n", "promise", "import"],
-  globals: {
-    "document": "off",
-    "navigator": "off",
-    "window": "off"
-  },
-  root: true,
-  env: {
-    node: true,
-  },
-
+  files: ['src/*.ts'],
   rules: {
     "@typescript-eslint/no-for-in-array": "error",
     "@typescript-eslint/strict-boolean-expressions": "error",
-    "@typescript-eslint/no-unused-vars": "error",
+    '@typescript-eslint/no-unused-var': 'warn',
     "import/no-cycle": "error",
     "import/no-self-import": "error",
     "no-self-assign": "error",
   },
-};
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname
+  extends:
+  [
+    es.configs.recommended,
+    ts.configs.stylisticTypeChecked,
+  ],
 });
-
-
-/** @type {import('eslint').Linter.Config[]} */
-const eslintConfig = [...compat.config(ex)];
-
-export default eslintConfig;

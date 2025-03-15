@@ -1,7 +1,7 @@
 {
-  "name": "war3-niacidle",
+  "name": "war3-ozzyidle",
   "version": "0.0.1",
-  "description": "The source code of the warcraft 3 refunded Niac Idle custom map",
+  "description": "The source code of the warcraft 3 refunded Ozzy Idle custom map",
   "author": "Ozzzzymaniac",
   "license": "GPL-3.0",
   "main": "src/game.ts",
@@ -28,20 +28,20 @@
     "ci": "pnpm run lint && ts-node compileScripts/ci.ts",
     "build": "pnpm run lint && pnpm run compile",
     "dev": "pnpm run build && pnpm run test",
-    "rc": "pnpm changeset pre enter rc && pnpm changeset version && pnpm changeset publish",
-    "beta": "pnpm changeset pre enter beta && pnpm changeset version && pnpm changeset publish"
+    "cs": "pnpm changeset",
+    "pub": "pnpm changeset version && pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",
     "@node-rs/xxhash": "^1.7.6",
     "@types/fs-extra": "11.0.4",
-    "@types/node": "22.13.8",
+    "@types/node": "22.13.10",
     "@types/pako": "2.0.3",
     "@types/seedrandom": "^3.0.8",
     "@typescript-to-lua/language-extensions": "^1.19.0",
-    "eslint": "^9.21.0",
+    "eslint": "^9.22.0",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-n": "^17.15.1",
+    "eslint-plugin-n": "^17.16.2",
     "eslint-plugin-promise": "^7.2.1",
     "fs-extra": "11.3.0",
     "mdx-m3-viewer": "^5.12.0",
@@ -51,11 +51,17 @@
     "ts-patch": "^3.3.0",
     "tsconfig-paths": "4.2.0",
     "tsutils": "3.21.0",
-    "typescript": "^5.7.2",
-    "typescript-to-lua": "^1.30.1",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1",
+    "typescript-to-lua": "^1.31.0",
     "war3-objectdata": "^0.2.3",
     "war3-types-strict": "^0.1.3",
     "winston": "3.17.0"
   },
-  "packageManager": "pnpm@10.5.2"
+  "packageManager": "pnpm@10.6.2",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@swc/core"
+    ]
+  }
 }

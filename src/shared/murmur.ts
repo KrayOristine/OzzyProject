@@ -1,5 +1,4 @@
-import { Uint } from './uint';
-import js from './jsNative';
+import u from '@/shared/util';
 
 const enum Inliner {
   mm3c1 = 0xcc9e2d51,
@@ -21,7 +20,7 @@ const _mmTb = new LuaTable();
  */
 export function Hash_MM2(data: string, seed: number): number {
 	if (_mmTb.get(data+seed) != null) return _mmTb.get(data+seed);
-	let str = js.TEEncode(data),
+	let str = u.to_byte_array(data),
 		l = str.length,
 		h = seed ^ l,
 		i = 0,
@@ -66,14 +65,14 @@ export function Hash_MM2(data: string, seed: number): number {
  * @author Gary Court
  * @author Austin Appleby
  *
- * @param key ASCII only
+ * @param data ASCII only
  * @param seed Positive integer only
  * @return 32-bit positive integer hash
  */
 export function HashMM3(data: string, seed: number): number {
 	if (_mmTb.get(data+seed) != null) return _mmTb.get(data+seed);
 
-	let key = js.TEEncode(data);
+	let key = u.to_byte_array(data);
 	let remainder: number, bytes: number, h1: number, h1b: number, k1: number, i: number;
 
 	remainder = key.length & 3; // key.length % 4

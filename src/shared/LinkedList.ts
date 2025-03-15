@@ -1,4 +1,4 @@
-import * as wex from "./WarEX";
+import util from "./util";
 
 /*
  * Ozzzzymaniac Introduce you a holy List
@@ -69,7 +69,7 @@ export class ListNode<T> {
     }
 
     public static recycle(node: ListNode<any>){
-        if (!wex.ArrContains(this._recycleStash, node)) this._recycleStash.push(node);
+        if (!util.ArrContains(this._recycleStash, node)) this._recycleStash.push(node);
     }
 
     public recycle(): this {

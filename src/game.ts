@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
   // Copyright (C) 2025  Kray Oristine
 
   // This program is free software: you can redistribute it and/or modify
@@ -15,12 +16,10 @@
   // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import * as h from "shared/hooks";
-//import * as lg from "shared/Logger";
-//import * as js from "shared/jsNative";
-//import * as wb from "shared/worldBounds";
-//import * as wex from "shared/WarEX";
-//import * as ll from "shared/LinkedList";
+import h from "shared/hooks";
+import u from '@/shared/util';
+import {InitCompressor} from '@/lua/deflate';
+import s from '@/modules/sync';
 
 // prepare modules import
 
@@ -37,13 +36,20 @@ import * as h from "shared/hooks";
 const BUILD_DATE = compiletime(() => new Date().toUTCString());
 const TS_VERSION = compiletime(() => require("typescript").version);
 const TSTL_VERSION = compiletime(() => require("typescript-to-lua").version);
-//const MAP_VERSION = compiletime(() => require("./package.json").version);
 
 function tsMain() {
+  // init lua
+  InitCompressor();
+
+  // init ts
+  u.util_init();
+  s.init();
+
+
 	print(`Build Date: ${BUILD_DATE}`);
 	print(`Typescript Version: ${TS_VERSION}`);
 	print(`TSTL Version: ${TSTL_VERSION}`);
-	//print(`Map Version: ${MAP_VERSION}`);
+
 }
 
 h.final(tsMain);

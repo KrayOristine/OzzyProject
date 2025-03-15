@@ -12,15 +12,15 @@ type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] exte
   ? Acc[number]
   : Enumerate<N, [...Acc, Acc['length']]>
 
-type NumberRange<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>
+declare type NumberRange<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>
+
 declare type Maybe<T> = T | null | undefined;
 
 declare type Spread<T1, T2> = T2 & Omit<T1, keyof T2>;
 
 declare type StrictOmit<T, K extends keyof T> = { [P in Exclude<keyof T, K>]: T[P]; };
 
-declare type Except<T, V> = T extends V ? never : T;
-
 declare type ExtractArray<T extends any[]> = (T)[number];
 
-declare const floorDiv: (a: number, b: number)=> LuaFloorDivision<number, number, number>;
+declare const _floorDiv: LuaFloorDivision<number, number, number>;
+declare const _pow: LuaPower<number, number, number>

@@ -11,14 +11,14 @@
     "useDefineForClassFields": false,
     "skipLibCheck": true,
     "noImplicitOverride": true,
+    "noUnusedLocals": false,
+    "noErrorTruncation": true,
     "target": "ESNext",
     "lib": ["ESNext"],
     "moduleResolution": "node10",
     "removeComments": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "!/*": ["./node_modules/*"],
-      "#/*": ["./*"]
+      "@/*": ["./*"],
     },
     "plugins": [
       {
