@@ -1,5 +1,5 @@
-import SlkFile from '../parsers/slk/file';
-import { IniFile } from '../parsers/ini/file';
+import SlkFile from '../parsers/slk/file.ts';
+import { IniFile } from '../parsers/ini/file.ts';
 
 /**
  * A MappedData row.
@@ -25,14 +25,14 @@ export class MappedDataRow {
     if (!string) {
       return 0;
     }
-    
+
     return parseFloat(string);
   }
 }
 
 /**
  * A structure that holds mapped data from INI and SLK files.
- * 
+ *
  * In the case of SLK files, the first row is expected to hold the names of the columns.
  */
 export class MappedData {
@@ -46,7 +46,7 @@ export class MappedData {
 
   /**
    * Load data from an SLK file or an INI file.
-   * 
+   *
    * Note that this may override previous properties!
    */
   load(buffer: string): void {

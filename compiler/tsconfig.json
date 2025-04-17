@@ -1,0 +1,18 @@
+{
+  "extends": ["../base.tsconfig.json"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": ".",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
+  },
+  "include": ["./**/*.ts"],
+  "exclude": [],
+  "ts-node": {
+    "transpileOnly": true,
+    "pretty": true,
+    "emit": false
+  }
+}

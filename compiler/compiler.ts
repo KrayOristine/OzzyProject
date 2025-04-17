@@ -1,15 +1,40 @@
-import { cutMapFile, getMapName, getPreservedName, IProjectConfig, logger, processScriptIncludes, updateProjectConfig, updateTSConfig } from "./utils";
+import { getMapName, getPreservedName, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils.ts";
 import { xxh3 } from "@node-rs/xxhash";
-import lm from "./luamin/luamin";
+import lm from "./luamin/luamin.ts";
 import * as fs from "fs-extra";
-import { execSync } from "child_process";
+import tstl from "typescript-to-lua";
+import { DiagnosticCategory } from 'typescript';
 
 interface MapFileCache {
   // filePath: "hash"
   [filePath: string]: string;
 }
+const enum inline {
 
-const seed = [845673492817342n, 156987324598743n, 378241596384920n, 903476123857294n, 245098765432189n];
+  seedA = 845673492817342,
+  seedB = 156987324598743,
+  seedC = 378241596384920,
+  seedD = 903476123857294,
+  seedE = 245098765432189
+}
+
+
+export function processScriptIncludes(contents: string) {
+  const regex = /include\(([^)]+)\)/gm;
+  let matches: RegExpExecArray | null;
+  while ((matches = regex.exec(contents)) !== null) {
+    const filename = matches[1].replace(/"/g, "").replace(/'/g, "");
+    const fileContents = fs.readFileSync(filename);
+    contents = contents.substring(0, regex.lastIndex - matches[0].length) + "\n" + fileContents + "\n" + contents.substring(regex.lastIndex);
+  }
+  return contents;
+}
+
+export function cutMapFile(filePath: string) {
+  const split = filePath.split("\\");
+
+  return split.slice(split.indexOf(getMapName()) + 1).join("/");
+}
 
 async function copyAndCache(source: string, target: string, cache: string, ignoreCache: boolean = false) {
   let tryNum = 0;
@@ -25,7 +50,7 @@ async function copyAndCache(source: string, target: string, cache: string, ignor
         return new Promise<boolean>((resolve, reject) => {
           fs.readFile(source, { encoding: "utf8" })
             .then((v) => {
-              const mapHash = xxh3.xxh128(v, seed[3]).toString(16);
+              const mapHash = xxh3.xxh128(v, BigInt(inline.seedE)).toString(16);
 
               if (ignoreCache) {
                 cached[mapFile] = mapHash;
@@ -70,7 +95,7 @@ async function copyAndCache(source: string, target: string, cache: string, ignor
 
 export async function mapBuildCache(mapUrl: string, mapDest: string) {
   const cachePath = mapDest + "cache.json";
-  await copyAndCache(mapUrl, mapDest + getMapName(), cachePath);
+  return copyAndCache(mapUrl, mapDest + getMapName(), cachePath);
 }
 
 /**
@@ -89,14 +114,29 @@ export async function compileMap(config: IProjectConfig) {
   }
 
   logger.info(`Building "${config.compilerOptions.baseUrl}"...`);
-  await mapBuildCache(config.compilerOptions.baseUrl, `${config.compilerOptions.outDir}/dist/`);
+  mapBuildCache(config.compilerOptions.baseUrl, `${config.compilerOptions.outDir}/dist/`);
 
   logger.info("Updating configuration...");
   updateTSConfig(config.compilerOptions.baseUrl);
   updateProjectConfig();
 
   logger.info("Transpiling code...");
-  execSync("tstl -p tsconfig.json", { stdio: "inherit" });
+
+  let r = tstl.transpileProject('../tsconfig.json');
+
+  if (r.diagnostics.length > 0){
+    var hasErr = false;
+    for (let i = 0; i < r.diagnostics.length; i++){
+      let diag = r.diagnostics[i];
+      if (diag.category === DiagnosticCategory.Error){
+        if (!hasErr) logger.error("Error during transpilation!");
+        hasErr = true;
+        logger.error(diag.messageText.toString());
+      }
+    }
+
+    return false;
+  }
 
   if (!fs.existsSync(tsLua)) {
     logger.error(`Could not find "${tsLua}"`);
@@ -114,7 +154,7 @@ export async function compileMap(config: IProjectConfig) {
   try {
     let contents = fs.readFileSync(mapLua).toString() + fs.readFileSync(tsLua).toString();
     contents = processScriptIncludes(contents);
-    const preserved = getPreservedName()
+    const preserved = await getPreservedName();
 
     if (config.compilerOptions.scripts.minify) {
       logger.info(`Minifying script...`);
@@ -142,16 +182,16 @@ export async function compileMap(config: IProjectConfig) {
         }) ?? "";
 
       if (minified.length <= 0) {
-        logger.error("Cant minify script!");
+        //logger.error("Cant minify script!");
         throw new Error("Cant minify script");
       }
 
       contents = minified;
     }
-    //contents = luamin.minify(contents);
+
     fs.writeFileSync(mapLua, contents);
   } catch (err) {
-    logger.error(err.toString());
+    logger.error(err);
     return false;
   }
   return true;

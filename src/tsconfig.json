@@ -1,0 +1,14 @@
+{
+  "extends": ["../base.tsconfig.json"],
+  "compilerOptions": {
+    "baseUrl": "../",
+    "outDir": ".",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "moduleResolution": "node10",
+    "types": ["@typescript-to-lua/language-extensions", "lua.d.ts", "common.j.d.ts", "helperType.d.ts", "hiddenNative.d.ts", "war3-transformer.d.ts", "war3map.d.ts"],
+    "typeRoots": ["./types", "../node_modules/@types"]
+  },
+  "include": ["./**/*.ts", "./types/**/*.d.ts"],
+  "exclude": ["types"]
+}

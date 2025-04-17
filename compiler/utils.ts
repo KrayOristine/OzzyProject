@@ -64,7 +64,7 @@ export function loadProjectConfig(): IProjectConfig {
 
     return cache.get("projectConfig");
   } catch (e) {
-    logger.error(e.toString());
+    logger.error(e);
     return {
       compilerOptions: {
         baseUrl: "",
@@ -93,7 +93,7 @@ export function loadTSConfig(): TSConfig {
 
     return cache.get("tsConfig");
   } catch (e) {
-    logger.error(e.toString());
+    logger.error(e);
     //@ts-expect-error
     return {};
   }
@@ -149,18 +149,9 @@ export function getFilesInDirectory(dir: string) {
  * Replaces all instances of the include directive with the contents of the specified file.
  * @param contents war3map.lua
  */
-export function processScriptIncludes(contents: string) {
-  const regex = /include\(([^)]+)\)/gm;
-  let matches: RegExpExecArray | null;
-  while ((matches = regex.exec(contents)) !== null) {
-    const filename = matches[1].replace(/"/g, "").replace(/'/g, "");
-    const fileContents = fs.readFileSync(filename);
-    contents = contents.substring(0, regex.lastIndex - matches[0].length) + "\n" + fileContents + "\n" + contents.substring(regex.lastIndex);
-  }
-  return contents;
-}
 
-function capture(source: string, regex: RegExp, native: string[], variable: string[], func: string[]){
+
+async function capture(source: string, regex: RegExp, native: string[], variable: string[], func: string[]){
   let m = regex.exec(source);
   while (m !== null) {
     if (m.index === regex.lastIndex) {
@@ -190,7 +181,7 @@ const enum Inliner {
   ValidType = "string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect"
 }
 
-export function getPreservedName(): {native: string[], variable: string[], func: string[]} {
+export function getPreservedName(): Promise<{native: string[],func: string[], variable: string[]}> {
   if (fs.existsSync("./preserveNameCache.json")){
     return JSON.parse(fs.readFileSync("./preserveNameCache.json", {encoding: 'utf8'}));
   }
@@ -206,14 +197,17 @@ export function getPreservedName(): {native: string[], variable: string[], func:
   const func: string[] = [];
   const variable: string[] = [];
 
-  capture(nat, regexA, native, variable, func);
-  capture(bliz, regexA, native, variable, func);
+  let prom = Promise.all([
+    capture(nat, regexA, native, variable, func),
+    capture(bliz, regexA, native, variable, func)
+  ]).then(()=>{
+    let result = {native: native, func:func, variable:variable};
 
-  const result = {native: native, func:func, variable:variable};
+    fs.writeFileSync("./preserveNameCache.json", JSON.stringify(result))
+    return result;
+  });
 
-  fs.writeFileSync("./preserveNameCache.json", JSON.stringify(result))
-
-  return result;
+  return prom;
 }
 
 export function updateTSConfig(mapFolder: string) {
@@ -246,16 +240,10 @@ export function getMapName() {
   return cache.get("mapName");
 }
 
-export function cutMapFile(filePath: string) {
-  const split = filePath.split("\\");
-
-  return split.slice(split.indexOf(getMapName()) + 1).join("/");
-}
-
 /**
  * Formatter for log messages.
  */
-const loggerFormatFunc = (info) => `[${(info.timestamp as string).replace("T", " ").split(".")[0]}] ${info.level}: ${info.message}`;
+const loggerFormatFunc = (info: any) => `[${(info.timestamp as string).replace("T", " ").split(".")[0]}] ${info.level}: ${info.message}`;
 
 /**
  * The logger object.

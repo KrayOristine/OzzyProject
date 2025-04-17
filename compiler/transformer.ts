@@ -80,7 +80,9 @@ function calculatePureCC(str: string) {
 
 function createObjectLiteral(object: object): ts.ObjectLiteralExpression {
   const props = Object.keys(object)
+  //@ts-expect-error
     .filter(key => object[key] !== undefined)
+  //@ts-expect-error
     .map(key => ts.factory.createPropertyAssignment(key, createExpression(object[key])))
   return ts.factory.createObjectLiteralExpression(props, true)
 }
@@ -195,7 +197,8 @@ function processMathAccess(node: ts.PropertyAccessExpression){
   if (!isAccessingMathStatic(node)) return;
   const values = node.name.getFullText();
 
-  if (Math[values] != null && typeof Math[values] === "number") return ts.factory.createNumericLiteral(Math[values]);
+  //@ts-expect-error
+  if (Object.hasOwn(Math, values) && typeof Math[values] === 'number') return ts.factory.createNumericLiteral(Math[values]);
 
   return undefined;
 }

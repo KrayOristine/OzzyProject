@@ -37,7 +37,7 @@ export default class War3Map {
 
   /**
    * Load an existing map.
-   * 
+   *
    * Note that this clears the map from whatever it had in it before.
    */
   load(buffer: ArrayBuffer | Uint8Array, readonly = false): void {
@@ -124,7 +124,7 @@ export default class War3Map {
 
   /**
    * Sets the imports file with all of the imports.
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   setImportsFile(): boolean {
@@ -141,12 +141,12 @@ export default class War3Map {
 
   /**
    * Imports a file to this archive.
-   * 
+   *
    * If the file already exists, its buffer will be set.
-   * 
+   *
    * Files added to the archive but not to the imports list will be deleted by the World Editor automatically.
    * This of course doesn't apply to internal map files.
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   import(name: string, buffer: ArrayBuffer | string): boolean {
@@ -166,7 +166,7 @@ export default class War3Map {
   /**
    * A shortcut to the internal archive function.
    */
-  set(name: string, buffer: ArrayBuffer | string): boolean {
+  set(name: string, buffer: Uint8Array | ArrayBuffer | string): boolean {
     if (this.readonly) {
       return false;
     }
@@ -197,9 +197,9 @@ export default class War3Map {
 
   /**
    * Deletes a file from the internal archive.
-   * 
+   *
    * Note that if the file is in the imports list, it will be removed from it too.
-   * 
+   *
    * Use this rather than the internal archive's delete.
    */
   delete(name: string): boolean {

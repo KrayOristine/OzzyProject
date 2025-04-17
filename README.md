@@ -1,5 +1,5 @@
 
-# Ozzzzymaniac - Ozzy Idle
+# Ozzzzymaniac - Ozzy Project
 
  A warcraft 3 reforged (aka. Refunded) maps that coded in [**TypeScript**](https://github.com/microsoft/TypeScript/) and powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
 
@@ -15,19 +15,8 @@
 
  This is a customized and modified version of the the original template codes
  from cipherxof (triggerhappy), all changes has been made to it are all from me
- and other contributor (if they even do contribute at least)
+ and other contributor (if they do exists except for dependabot)
 
- This modified version features:
-
-- Improved `compiletime`
-- Improved compilation time (excluding tstl transpilation time)
-- Map building now utilize caching (can be disabled, enabled by default)
-- Maps building now automatically grab resources from `resources` folder as if it was part of the maps
-- FourCC inlining, extra FourCC utility
-- Additional type helper for using
-- Tailored to warcraft 3 usage and improved lua minify, lua parse
-- Reduced dependencies
-- Additional preprocessor function (well, obviously tailored to this map)
 
 ## Map Resources Credit
 

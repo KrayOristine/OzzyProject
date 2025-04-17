@@ -1,18 +1,18 @@
 import * as fs from "fs-extra";
 import { loadProjectConfig, logger } from "./utils";
-const types = {
-  "cam": "camerasetup",
-  "dest": "destructable",
-  "item": "item",
-  "rct": "rect",
-  "snd": "sound",
-  "trg": "trigger",
-  "unit": "unit"
-};
+const types = new Map<string, string>();
+  types.set("cam" ,"camerasetup");
+  types.set("dest" ,"destructable");
+  types.set("item" ,"item");
+  types.set("rct" ,"rect");
+  types.set("snd" ,"sound");
+  types.set("trg" ,"trigger");
+  types.set("unit", "unit");
+
 
 function generateDefs(contents: string){
     const lines = contents.split("\n");
-    const varTypes = {};
+    const varTypes = new Map<string, string>();
     let output = "";
 
     lines.forEach(line => {
@@ -22,7 +22,7 @@ function generateDefs(contents: string){
             const parts = line.split("_", 2);
 
             if (parts.length >= 2) {
-                let type = types[parts[1]];
+                let type = types.get(parts[1]) as string;
                 const name = (line.indexOf("=") != -1 ? line.split("=")[0] : line);
 
                 // Generated sound variables can be strings as well as sounds
@@ -30,10 +30,10 @@ function generateDefs(contents: string){
                     type = "string";
                 }
 
-                if (name in varTypes == false) {
+                if (!varTypes.has(name)) {
                     output += `declare var ${name}: ${type};\n`
 
-                    varTypes[name] = type;
+                    varTypes.set(name, type);
                 }
             }
         }
@@ -54,6 +54,6 @@ try {
     const result = generateDefs(contents);
     fs.writeFileSync("src/war3map.d.ts", result);
 } catch (err) {
-    logger.error(err.toString());
+    logger.error(err);
     logger.error(`There was an error generating the definition file for '${luaFile}'`);
 }

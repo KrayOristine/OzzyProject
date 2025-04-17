@@ -1,6 +1,4 @@
 import { readFileSync, existsSync, writeFileSync } from "fs";
-import War3MapW3d from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3d/file";
-import War3MapW3u from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file";
 import { ObjectData, ModificationFiles } from "war3-objectdata";
 
 function loadFile<T extends (typeof War3MapW3d | typeof War3MapW3u)>(path: string, ContainerClass: T): T | null {

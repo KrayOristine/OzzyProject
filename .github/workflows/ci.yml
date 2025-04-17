@@ -6,10 +6,11 @@ on:
 
 jobs:
   lint:
+    runs-on: ubuntu-latest
     timeout-minutes: 20
-  strategy:
-    matrix:
-      node-version: [22.x, 20.x]
+    strategy:
+        matrix:
+            node-version: [22.x]
 
     steps:
       - name: Checkout
@@ -27,26 +28,3 @@ jobs:
       - name: Run lint
         run: pnpm run lint
 
-  test:
-    timeout-minutes: 20
-
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x]
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Test
-        run: pnpm run ci

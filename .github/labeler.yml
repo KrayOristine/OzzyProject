@@ -2,10 +2,13 @@ system:
 - changed-files:
   - any-glob-to-any-file: src/system/**/*
 
-utility:
-- changed-files:
-  - any-glob-to-any-file: src/shared/**/*
-
 compiler:
 - changed-files:
-  - any-glob-to-any-file: compileScripts/**/*
+  - any-glob-to-any-file: compiler/**/*
+
+feature:
+- head-branch: ['^feature', 'feature', '^feat']
+
+documentation:
+- changed-files:
+  - any-glob-to-any-file: '**/*.md'
