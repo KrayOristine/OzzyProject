@@ -1,6 +1,6 @@
-import { getMapName, getPreservedName, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils.ts";
+import { getMapName, getPreservedName, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils";
 import { xxh3 } from "@node-rs/xxhash";
-import lm from "./luamin/luamin.ts";
+import lm from "./luamin/luamin";
 import * as fs from "fs-extra";
 import tstl from "typescript-to-lua";
 import { DiagnosticCategory } from 'typescript';
@@ -10,7 +10,6 @@ interface MapFileCache {
   [filePath: string]: string;
 }
 const enum inline {
-
   seedA = 845673492817342,
   seedB = 156987324598743,
   seedC = 378241596384920,
@@ -122,7 +121,7 @@ export async function compileMap(config: IProjectConfig) {
 
   logger.info("Transpiling code...");
 
-  let r = tstl.transpileProject('../tsconfig.json');
+  let r = tstl.transpileProject('../src/tsconfig.json');
 
   if (r.diagnostics.length > 0){
     var hasErr = false;

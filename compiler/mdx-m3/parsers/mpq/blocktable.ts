@@ -14,7 +14,7 @@ export default class BlockTable {
     this.entries = [];
   }
 
-  add(buffer: ArrayBuffer): MpqBlock {
+  add(buffer: Uint8Array): MpqBlock {
     const block = new MpqBlock();
 
     block.normalSize = buffer.byteLength;

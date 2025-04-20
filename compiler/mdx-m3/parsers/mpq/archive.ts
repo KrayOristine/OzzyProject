@@ -7,6 +7,7 @@ import MpqCrypto from './crypto';
 import MpqFile from './file';
 import MpqHashTable from './hashtable';
 import { searchHeader } from './isarchive';
+import { toArrayBuffer } from '../../../utils';
 
 /**
  * MoPaQ archive (MPQ) version 0.
@@ -31,7 +32,7 @@ export default class MpqArchive {
 
   /**
    * Load an existing archive.
-   * 
+   *
    * Note that this clears the archive from whatever it had in it before.
    */
   load(buffer: ArrayBuffer | Uint8Array, readonly = false): void {
@@ -107,9 +108,9 @@ export default class MpqArchive {
 
   /**
    * Save this archive.
-   * 
+   *
    * Returns null when...
-   * 
+   *
    *     1) The archive is in readonly mode.
    *     2) The offset of a file encrypted with FILE_OFFSET_ADJUSTED_KEY changed, and the file name is unknown.
    */
@@ -207,9 +208,9 @@ export default class MpqArchive {
   /**
    * Some MPQs have empty memory chunks in them, left over from files that were deleted.
    * This function searches for such chunks, and removes them.
-   * 
+   *
    * Note that it is called automatically by save().
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   saveMemory(): number {
@@ -264,7 +265,7 @@ export default class MpqArchive {
 
   /**
    * Gets a list of the file names in the archive.
-   * 
+   *
    * Note that files loaded from an existing archive, without resolved names, will be named FileXXXXXXXX.
    */
   getFileNames(): string[] {
@@ -306,7 +307,7 @@ export default class MpqArchive {
   /**
    * Adds a file to this archive.
    * If the file already exists, its buffer will be set.
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   set(name: string, buffer: ArrayBuffer | Uint8Array | string): boolean {
@@ -369,7 +370,7 @@ export default class MpqArchive {
 
   /**
    * Checks if a file exists.
-   * 
+   *
    * Prefer to use get() if you are going to use get() afterwards anyway.
    */
   has(name: string): boolean {
@@ -378,9 +379,9 @@ export default class MpqArchive {
 
   /**
    * Deletes a file from this archive.
-   * 
+   *
    * Does nothing if...
-   * 
+   *
    *     1) The archive is in readonly mode.
    *     2) The file does not exist.
    */
@@ -402,12 +403,12 @@ export default class MpqArchive {
 
   /**
    * Renames a file.
-   * 
+   *
    * Does nothing if...
-   * 
+   *
    *     1) The archive is in readonly mode.
    *     2) The file does not exist.
-   * 
+   *
    * Note that this sets the current file's hash's status to being deleted, rather than removing it.
    * This is due to the way the search algorithm works.
    */
@@ -429,11 +430,11 @@ export default class MpqArchive {
 
   /**
    * Resizes the hashtable to the nearest power of two equal to or bigger than the given size.
-   * 
+   *
    * Generally speaking, the bigger the hashtable is, the quicker insertions/searches are, at the cost of added memory.
-   * 
+   *
    * Does nothing if...
-   * 
+   *
    *     1) The archive is in readonly mode.
    *     2) The calculated size is smaller than the amount of files in the archive.
    *     3) Not all of the file names in the archive are resolved.

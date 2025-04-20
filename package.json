@@ -19,17 +19,16 @@
     "url": "https://ko-fi.com/trantrungho71#"
   },
   "scripts": {
-    "prepare": "ts-patch install -s",
-    "gen": "ts-node -r tsconfig-paths/register ./compiler/gendata.ts -P ./compiler/tsconfig.json",
-    "lint": "pnpm dlx eslint ./src/** --ext ts",
-    "test": "ts-node -r tsconfig-paths/register compiler/test.ts",
-    "compile": "ts-node -r tsconfig-paths/register ./compiler/build.ts",
-    "compile:defs": "ts-node -r tsconfig-paths/register ./compiler/defs.ts",
-    "ci": "pnpm run lint && ts-node -r tsconfig-paths/register ./compiler/ci.ts",
+    "prepare": "pnpm exec ts-patch install -s",
+    "lint": "pnpm exec eslint ./src/** --ext ts",
+    "test": "pnpm exec ts-node -r tsconfig-paths/register compiler/test.ts",
+    "compile": "pnpm exec ts-node -r tsconfig-paths/register ./compiler/build.ts",
+    "compile:defs": "pnpm exec ts-node -r tsconfig-paths/register ./compiler/defs.ts",
+    "ci": "pnpm run lint && pnpm exec ts-node -r tsconfig-paths/register ./compiler/ci.ts",
     "build": "pnpm run lint && pnpm run compile",
     "dev": "pnpm run build && pnpm run test",
-    "cs": "pnpm changeset",
-    "pub": "pnpm changeset version && pnpm changeset publish"
+    "cs": "pnpm exec changeset",
+    "pub": "pnpm exec changeset version && pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",

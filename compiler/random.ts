@@ -155,32 +155,36 @@ const entropy = [0]; // generate from random.org
 const maxI = 1000000000;
 const minI = 1;
 
-const generateEntropy = (list: number[]) => {
-  // Step 1: Count the frequency of each integer in the list
-  const count: { [key: number]: number } = {};
-  list.forEach((num) => {
-    count[num] = (count[num] || 0) + 1;
-  });
+const shannonEntropy = (val: number[]) => {
+  // Normalize the array to probabilities
+  const total = val.reduce((acc, v) => acc + v, 0);
+  const probabilities = val.map((v) => v / total);
 
-  // Step 2: Calculate the probability of each integer
-  const totalCount = list.length;
-  const probabilities = Object.values(count).map((freq) => freq / totalCount);
-
-  // Step 3: Calculate entropy
-  const entropy = probabilities.reduce((acc, p) => acc - p * Math.log2(p), 0);
-
-  return entropy;
+  // Calculate entropy
+  return probabilities
+      .map((p) => (p > 0 ? -p * Math.log(p) * Math.LOG2E : 0)) // Handle p > 0
+      .reduce((x, y) => x + y, 0);
 };
 
 const generateEntropyList = (list: number[]) => {
   const l = list.length;
-  const part = Math.floor(l / 50);
+  const part = Math.floor(l / 100);
   const result: number[] = [];
   for (let i = 0; i < part; i++) {
-    result.push(generateEntropy(list.slice(i * 50, (1 + i) * 50)));
+    result.push(shannonEntropy(list.slice(i * 100, (1 + i) * 100)));
   }
 
   return result;
 };
 
-const shannonEntropy = (val: number[]) => val.map((v) => -v * Math.log(v)).reduce((x, y) => x + y, 0) * Math.LOG2E;
+
+const r = generateEntropyList(set);
+const l = ['['];
+for (let i = 0; i < r.length; i++){
+  l.push(r[i].toString());
+  l.push(',');
+}
+l.pop();
+l.push(']');
+
+console.log(l.join(''));

@@ -1,20 +1,4 @@
 {
-  "$schema": "https://raw.githubusercontent.com/TypeScriptToLua/TypeScriptToLua/master/tsconfig-schema.json",
+  "files": [],
   "references": [{ "paths": "./src" }, { "paths": "./compiler" }],
-  "tstl": {
-    "luaTarget": "5.3",
-    "buildMode": "default",
-    "luaBundleEntry": "./src/game.ts",
-    "luaBundle": "./dist/tstl_output.lua",
-    "noImplicitSelf": true,
-    "noHeader": true,
-    "luaLibImport": "require",
-    "measurePerformance": true,
-    "sourceMapTraceback": false,
-    "tstlVerbose": false,
-    "luaPlugins": [
-      //TODO: Add constant folding
-    ],
-    "noResolvePaths": ["typescript", "typescript-to-lua"]
-  }
 }

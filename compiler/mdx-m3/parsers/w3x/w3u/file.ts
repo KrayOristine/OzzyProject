@@ -11,6 +11,13 @@ export default class War3MapW3u {
   originalTable = new ModificationTable();
   customTable = new ModificationTable();
 
+  /**
+   *
+   */
+  constructor() {
+
+  }
+
   load(bufferOrStream: ArrayBuffer | Uint8Array | BinaryStream): void {
     let stream;
 

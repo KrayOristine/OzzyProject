@@ -15,6 +15,7 @@ type TIMethod = (libraryName: string, initCallback: TIInit)=>void;
 type TotalInitialization = {
   global: TIMethod;
   library: TIMethod;
+  module: TIMethod;
   trig: TIMethod;
   map: TIMethod;
   final: TIMethod;
@@ -25,4 +26,5 @@ type TotalInitialization = {
 
 
 
+declare const Require: TIRequire;
 declare const OnInit: TotalInitialization;

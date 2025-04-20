@@ -1,9 +1,11 @@
 import { readFileSync, existsSync, writeFileSync } from "fs";
-import { ObjectData, ModificationFiles } from "war3-objectdata";
+import { ObjectData, ModificationFiles } from "./w3-objectdata/index";
+import War3MapW3d from './mdx-m3/parsers/w3x/w3d/file';
+import War3MapW3u from './mdx-m3/parsers/w3x/w3u/file';
 
-function loadFile<T extends (typeof War3MapW3d | typeof War3MapW3u)>(path: string, ContainerClass: T): T | null {
+function loadFile<T extends War3MapW3u | War3MapW3d>(path: string, cls: {new (...args: any[]): T }) {
   if (existsSync(path)) {
-    const file = new ContainerClass();
+    const file: T = new cls();
 
     file.load(readFileSync(path));
 
@@ -38,7 +40,7 @@ export function loadObjectData(mapDir?: string) {
     }
 
     // Load in the map doodad modifications if it has any.
-    const w3d = loadFile(`${mapDir}/war3map.w3d`, War3MapW3d);
+    const w3d = loadFile(`${mapDir}/war3map.w3d`, War3MapW3u);
     if (w3d) {
       mapFiles.w3d = w3d;
     }

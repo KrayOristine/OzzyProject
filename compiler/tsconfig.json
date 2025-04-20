@@ -1,8 +1,20 @@
 {
-  "extends": ["../base.tsconfig.json"],
   "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "strict": true,
+    "sourceMap": false,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": false,
+    "noErrorTruncation": true,
+    "removeComments": true,
+    "paths": {
+      "@/*": ["./*"]
+    },
     "baseUrl": ".",
-    "outDir": ".",
     "target": "ESNext",
     "lib": ["ESNext"],
     "module": "NodeNext",

@@ -5,15 +5,7 @@ import * as tsu from "tsutils";
 import { loadObjectData, saveObjectData } from "./objectData";
 import { loadProjectConfig, loadTSConfig } from "./utils";
 
-/*
- * This is the built-in constant folding/propagation of the new version
- * of warcraft 3 template
- *
- * This plugin features:
- *  + Automatic conversion of FourCC into object id (both single string and array of string)
- *  + Automatic calculation of simple math values
- *  + Replace Math property access into it values
- */
+
 
 interface ComputeOptions {
   cfPrecision: number;

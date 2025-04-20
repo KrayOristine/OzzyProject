@@ -1,0 +1,21 @@
+import War3MapW3d from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3d/file";
+import War3MapW3u from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file";
+import Modification from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/modification";
+import ModifiedObject from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/modifiedobject";
+export declare function war3ToTS(war3Type: string, war3Value: string | number | undefined): string | number | boolean;
+export declare function war3ToDefaultTS(war3Type: "string"): string;
+export declare function war3ToDefaultTS(war3Type: "int"): number;
+export declare function war3ToDefaultTS(war3Type: "unreal"): number;
+export declare function war3ToDefaultTS(war3Type: "real"): number;
+export declare function war3ToDefaultTS(war3Type: "bool"): boolean;
+export declare function war3ToDefaultTS(war3Type: string): string;
+export declare function tsToWar3(id: string, war3Type: string, tsValue: string | number | boolean): Modification;
+export declare function pushArray<T>(out: T[], pushed: T[]): void;
+export declare function saveModificationFile(ModificationsClass: typeof War3MapW3u | typeof War3MapW3d, { original, custom }: {
+    original: ModifiedObject[];
+    custom: ModifiedObject[];
+}): War3MapW3u | War3MapW3d | undefined;
+export declare function war3TypeToTS(type: string): "string" | "number" | "boolean";
+export declare function pascalCase(what: string): string;
+export declare function camelCase(what: string): string;
+export declare function generateId(map: Record<string, unknown>, capitalize: boolean): string;
