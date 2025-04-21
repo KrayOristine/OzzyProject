@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Upgrades = exports.Buffs = exports.Abilities = exports.Doodads = exports.Destructables = exports.Items = exports.Units = exports.ObjectData = void 0;
+var objectdata_1 = require("./objectdata");
+Object.defineProperty(exports, "ObjectData", { enumerable: true, get: function () { return objectdata_1.ObjectData; } });
+var units_1 = require("./generated/units");
+Object.defineProperty(exports, "Units", { enumerable: true, get: function () { return units_1.Units; } });
+var items_1 = require("./generated/items");
+Object.defineProperty(exports, "Items", { enumerable: true, get: function () { return items_1.Items; } });
+var destructables_1 = require("./generated/destructables");
+Object.defineProperty(exports, "Destructables", { enumerable: true, get: function () { return destructables_1.Destructables; } });
+var doodads_1 = require("./generated/doodads");
+Object.defineProperty(exports, "Doodads", { enumerable: true, get: function () { return doodads_1.Doodads; } });
+var abilities_1 = require("./generated/abilities");
+Object.defineProperty(exports, "Abilities", { enumerable: true, get: function () { return abilities_1.Abilities; } });
+var buffs_1 = require("./generated/buffs");
+Object.defineProperty(exports, "Buffs", { enumerable: true, get: function () { return buffs_1.Buffs; } });
+var upgrades_1 = require("./generated/upgrades");
+Object.defineProperty(exports, "Upgrades", { enumerable: true, get: function () { return upgrades_1.Upgrades; } });
+//# sourceMappingURL=index.js.map

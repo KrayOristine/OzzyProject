@@ -10,7 +10,8 @@ const enum Inliner {
 
 class PRandom {
   private static stack: PRandom[] = [];
-  private static globalEntropy: number[] = [];
+  // pre-generated entropy
+  private static globalEntropy: number[] = [6.265385083298265,6.319829134006734,6.375049116159016,6.364932021032059,6.413244363140154,6.381178522109696,6.3059392452896565,6.308132842751394,6.412634312777182,6.361237882657251,6.311335699225881,6.324946692618956,6.412855450269851,6.356751961362843,6.32488456600394,6.370177399330763,6.338785202876735,6.352603012802634,6.345414617833736,6.2652213417614115,6.390351306146134,6.329525975794566,6.453895583372193,6.444279055541251];
   private i = 0;
   private j = 0;
   private S: number[] = [];
@@ -22,12 +23,10 @@ class PRandom {
   static create(seed: string, entropy: boolean) {
     const key: number[] = entropy ? this.globalEntropy.slice() : [];
     PRandom.mixkey(PRandom.str(seed), key);
-    const obj = PRandom.stack.pop();
-    if (obj == undefined) {
+    if (this.stack.length <= 0)
       return new PRandom().init(key, entropy);
-    }
 
-    return obj.init(key, entropy);
+    return PRandom.stack.pop()!.init(key, entropy);
   }
 
   static clean(v: PRandom) {
@@ -70,7 +69,8 @@ class PRandom {
     }
 
     this.g(Inliner.width);
-
+    PRandom.mixkey(s, PRandom.globalEntropy);
+    this.g(Inliner.width);
     PRandom.mixkey(s, PRandom.globalEntropy);
 
     return this;
