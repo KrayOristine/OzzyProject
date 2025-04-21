@@ -1,11 +1,11 @@
 /** @noSelfInFile */
 
-// declare let main: () => void;
-// declare let config: () => void;
-// declare let InitGlobal: () => void;
-// declare let InitCustomTriggers: () => void;
-// declare let RunInitializationTriggers: () => void;
-// declare let MarkGameStarted: () => void;
+declare let main: () => void;
+declare let config: () => void;
+declare let InitGlobal: () => void;
+declare let InitCustomTriggers: () => void;
+declare let RunInitializationTriggers: () => void;
+declare let MarkGameStarted: () => void;
 type hookFunc = () => void;
 
 const oldMain = main;
@@ -28,7 +28,6 @@ print = function (this: void, ...args: any[]) {
   __printStack.push(str);
 };
 
-//@ts-expect-error
 main = function () {
   oldMain();
   let tbl = __hooksTable[4];
@@ -67,7 +66,7 @@ main = function () {
     __oldPrint = null;
   })
 };
-//@ts-expect-error
+
 config = function () {
   oldConfig();
   let tbl = __hooksTable[5];
@@ -77,7 +76,7 @@ config = function () {
       if (!result[0]) __errorStack.push(result[1]);
     }
 };
-//@ts-expect-error
+
 InitGlobal = function () {
   oldGlobal();
   let tbl = __hooksTable[0];
@@ -87,7 +86,7 @@ InitGlobal = function () {
       if (!result[0]) __errorStack.push(result[1]);
     }
 };
-//@ts-expect-error
+
 InitCustomTriggers = function () {
   oldTrig();
   let tbl = __hooksTable[1];
@@ -97,7 +96,7 @@ InitCustomTriggers = function () {
       if (!result[0]) __errorStack.push(result[1]);
     }
 };
-//@ts-expect-error
+
 RunInitializationTriggers = function () {
   oldInit();
   let tbl = __hooksTable[2];
