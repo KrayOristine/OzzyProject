@@ -951,7 +951,9 @@ export class Ease {
     return (end-start) * 0.5 * _pow((value-2), 3) + 2 + start;
   }
 
-
+  static inQuart(start: number,end: number,value: number){
+    return (end-start) * _pow(value, 4) + start;
+  }
 
 }
 
