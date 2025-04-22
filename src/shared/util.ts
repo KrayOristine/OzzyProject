@@ -147,7 +147,7 @@ function to_utf8(s: string): string{
 
   let r: string[] = [];
 
-  for (const i of $range(0,(strlen >> 1)+(strlen&1)-1)) {
+  for (const i of $range(0,(strlen >>> 1)+(strlen&1)-1)) {
     r[i] = char((arr[i+i] << 8) + (arr[i+i+1] || 255));
 
   }
@@ -163,7 +163,7 @@ function code_utf8(s: string){
 
   for (const [_, c] of utf8.codes(s)){
     i += 1;
-    r.set(i, c >> 8);
+    r.set(i, c >>> 8);
     i += 1;
     r.set(i, c & 255);
   }
