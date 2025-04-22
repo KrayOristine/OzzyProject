@@ -20,6 +20,7 @@
   },
   "scripts": {
     "prepare": "pnpm exec ts-patch install -s",
+    "ghauto": "git add . && git commit -S",
     "lint": "pnpm exec eslint ./src/** --ext ts",
     "test": "NODE_OPTIONS='--expose-gc --env-file=.env'  && pnpm exec ts-node -r tsconfig-paths/register compiler/test.ts",
     "compile": "NODE_OPTIONS='--expose-gc --env-file=.env'  && pnpm exec ts-node -r tsconfig-paths/register ./compiler/build.ts",

@@ -19,6 +19,7 @@ const nmin = math.min;
  */
 export const enum MathConst {
   PI = 3.141592653589793238462643383279502884,
+  HALF_PI = PI*0.5,
   NATURAL_LOG_2 = 0.693147181,
   DEG2RAD = PI / 180.0,
   RAD2DEG = 180 / PI,
@@ -940,7 +941,7 @@ export class Ease {
   }
 
   static outCubic(start: number, end: number, value: number){
-    return (end-start) * _pow((value-1), 3) + 1 + start
+    return (end-start) * (_pow((value-1), 3) + 1) + start
   }
 
   static inOutCubic(start: number, end: number, value: number){
@@ -948,13 +949,69 @@ export class Ease {
 
     if (value < 1) return (end-start) * 0.5 * _pow(value, 3) + start
 
-    return (end-start) * 0.5 * _pow((value-2), 3) + 2 + start;
+    return (end-start) * 0.5 * (_pow((value-2), 3) + 2) + start;
   }
 
   static inQuart(start: number,end: number,value: number){
     return (end-start) * _pow(value, 4) + start;
   }
 
+  static outQuart(start: number,end: number,value: number){
+    return (-(end-start)) * (_pow((value-1), 4)-1) + start;
+  }
+
+  static inOutQuart(start: number,end: number,value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) * 0.5 * _pow(value, 4) + start
+
+    return (-(end-start)) * 0.5 * (_pow((value-2), 4) - 2) + start;
+  }
+
+  static inQuint(start: number,end: number,value: number){
+    return (end-start) * _pow(value, 5) + start;
+  }
+
+  static outQuint(start: number,end: number,value: number){
+    return (-(end-start)) * (_pow((value-1), 5)+1) + start;
+  }
+
+  static inOutQuint(start: number,end: number,value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) * 0.5 * _pow(value, 5) + start
+
+    return (-(end-start)) * 0.5 * (_pow((value-2), 5) + 2) + start;
+  }
+
+  static inSine(start: number,end: number,value: number){
+    end -= start;
+    return -end * cos(value * MathConst.HALF_PI) + end + start;
+  }
+
+  static outSine(start: number,end: number,value: number){
+    return (end-start) * sin(value * MathConst.HALF_PI) + start;
+  }
+
+  static inOutSine(start: number,end: number,value: number){
+    return (-(end-start)) * 0.5 * (cos(MathConst.PI * value)-1) + start;
+  }
+
+  static inExpo(start: number,end: number,value: number){
+    return (end-start) * _pow(2, (10 * (value - 1))) + start;
+  }
+
+  static outExpo(start: number,end: number,value: number){
+    return (end-start) * (-_pow(2, (-10 * value)) + 1) + start;
+  }
+
+  static inOutExpo(start: number,end: number,value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) *0.5 * _pow(2, (10 * (value - 1))) + start;
+
+    return (end-start) * 0.5 * (-_pow(2, (-10 * (value-1))) + 2) + start;
+  }
 }
 
 export function Lerp(a: number, b: number, t: number) {
