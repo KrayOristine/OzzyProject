@@ -145,69 +145,98 @@ export function getFilesInDirectory(dir: string) {
   return files;
 }
 
-/**
- * Replaces all instances of the include directive with the contents of the specified file.
- * @param contents war3map.lua
- */
+function fmtStr(arr: RegExpExecArray) {
+  const r = [];
+  for (let i = 1; i < arr.length; i++) {
+    const str = arr[i];
+    if (str === undefined || str === null) {
+      r.push(`${i}/0`);
+      continue;
+    }
 
+    const valid = str.trim();
+    if (valid.length <= 0 || valid === "") {
+      r.push(`${i}/0`);
+      continue;
+    }
 
-async function capture(source: string, regex: RegExp, native: string[], variable: string[], func: string[]){
-  let m = regex.exec(source);
+    r.push(`${i}/${valid}`);
+  }
+
+  return r.join(",");
+}
+
+function checkValid(which: string, val: string) {
+  if (val === undefined || val === null) return false;
+
+  const str = val.toLowerCase().trim();
+  if (str.length === 0 || str === "") return false;
+
+  return str == which;
+}
+
+async function capture(source: Promise<string>, regex: RegExp, native: string[], variable: string[], func: string[]) {
+  const sourceData = await source;
+  let m = regex.exec(sourceData);
   while (m !== null) {
     if (m.index === regex.lastIndex) {
-        regex.lastIndex++;
+      regex.lastIndex++;
     }
 
     // https://regex101.com/r/Zy6QfV/1 -- saved for future
     const name = m[16];
-    const isConst = m[3].toLowerCase() == "constant"; // what do you expect me to do?
-    const isFunc = m[4].toLowerCase() == "function";
-    const isNative = m[5].toLowerCase() == "native" || m[11].toLowerCase() == "native";
-    const isVar = m[7] != undefined || m[13] != undefined;
+    const isConst = checkValid("constant", m[2]); // what do you expect me to do?
+    const isFunc = checkValid("function", m[2]);
+    const isNative = checkValid("native", m[10]) || checkValid("native", m[2]);
+    const isVar = !(isFunc || isNative);
     // which kind
-    if (isVar){
-      variable.push(name);
-    } else if (isFunc) {
+
+    // console.log(
+    //   `[Native Matcher] Found match: ${name} - Is Const/Func/Native/Var: ${isConst ? 1 : 0}/${isFunc ? 1 : 0}/${
+    //     isNative ? 1 : 0
+    //   }/${isVar ? 1 : 0} - Array of V: [${fmtStr(m)}]`
+    // );
+    if (isFunc) {
       func.push(name);
     } else if (isNative) {
       native.push(name);
+    } else if (isVar) {
+      variable.push(name);
     }
 
-    m = regex.exec(source);
+    m = regex.exec(sourceData);
   }
 }
 
 const enum Inliner {
-  ValidType = "string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect"
+  ValidType = "string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect",
 }
 
-export function getPreservedName(): Promise<{native: string[],func: string[], variable: string[]}> {
-  if (fs.existsSync("./preserveNameCache.json")){
+export async function getPreservedName(forceGenerate: boolean = false): Promise<{ native: string[]; func: string[]; variable: string[] }> {
+  if (!forceGenerate && fs.existsSync("./preserveNameCache.json")) {
     return JSON.parse(fs.readFileSync("./preserveNameCache.json", {encoding: 'utf8'}));
   }
 
-  const bliz = fs.readFileSync("./Blizzard.j", {encoding: "utf-8"});
-  const nat = fs.readFileSync("./common.j", {encoding: "utf-8"});
-
-  const regexA = new RegExp(`^([\\t ]+)?((constant )|(function )|(native )|((${Inliner.ValidType}) (array )?))([ \\t]+)?((native )|((${Inliner.ValidType}) (array )?))?([ \\t]+)?(\\w+)(([ \\t]+)(takes|\\=)? [, \\w\\d\\t\\"\\'\\(\\)]+)?\\n?$`, "gm");
-
-  //const regexB = /^([\t ]+)?((constant )|(function )|(native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))([ \t]+)?((native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))?([ \t]+)?(\w+)(([ \t]+)(takes|\=)? [, \w\d\t\"\'\(\)]+)?\n?$/mg
+  const bliz = fs.readFile("./compiler/Blizzard.j", { encoding: "utf-8" });
+  const nat = fs.readFile("./compiler/common.j", { encoding: "utf-8" });
 
   const native: string[] = [];
   const func: string[] = [];
   const variable: string[] = [];
 
-  let prom = Promise.all([
-    capture(nat, regexA, native, variable, func),
-    capture(bliz, regexA, native, variable, func)
-  ]).then(()=>{
-    let result = {native: native, func:func, variable:variable};
+  //const regexA = new RegExp(`^([\\t ]+)?((constant )|(function )|(native )|((${Inliner.ValidType}) (array )?))([ \\t]+)?((native )|((${Inliner.ValidType}) (array )?))?([ \\t]+)?(\\w+)(([ \\t]+)(takes|\\=)? [, \\w\\d\\t\\"\\'\\(\\)]+)?\\n?$`, "gm");
+  const regexB =
+    /^([\t ]+)?((constant )|(function )|(native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))([ \t]+)?((native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))?([ \t]+)?(\w+)(([ \t]+)(takes|\=)? [, \w\d\t\"\'\(\)]+)?\n?$/gm;
 
-    fs.writeFileSync("./preserveNameCache.json", JSON.stringify(result))
-    return result;
-  });
+  let capNat = capture(nat, regexB, native, variable, func);
+  let capBlit = capture(bliz, regexB, native, variable, func);
 
-  return prom;
+  await Promise.allSettled([capNat, capBlit]);
+
+  let result = { native: native, func: func, variable: variable };
+
+  fs.writeFileSync("./preserveNameCache.json", JSON.stringify(result));
+  return result;
 }
 
 export function updateTSConfig(mapFolder: string) {
@@ -243,7 +272,8 @@ export function getMapName() {
 /**
  * Formatter for log messages.
  */
-const loggerFormatFunc = (info: any) => `[${(info.timestamp as string).replace("T", " ").split(".")[0]}] ${info.level}: ${info.message}`;
+const loggerFormatFunc = (info: any) =>
+  `[${(info.timestamp as string).replace("T", " ").split(".")[0]}] ${info.level}: ${info.message}`;
 
 /**
  * The logger object.

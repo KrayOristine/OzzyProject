@@ -151,14 +151,23 @@ export async function compileMap(config: IProjectConfig) {
   }
 
   try {
-    let contents = fs.readFileSync(mapLua).toString() + fs.readFileSync(tsLua).toString();
-    contents = processScriptIncludes(contents);
-    const preserved = await getPreservedName();
+    const readMap = fs.readFile(mapLua);
+    const readTs = fs.readFile(tsLua);
+    const getPreserve = getPreservedName();
+
+    const mapL =  await readMap;
+    const tsL = await readTs;
+    const ct = new Uint8Array(mapL.byteLength + tsL.byteLength);
+    ct.set(mapL, 0);
+    ct.set(tsL, mapL.byteLength);
+
+    let contents = processScriptIncludes(ct.toString());
+    const preserved = await getPreserve;
 
     if (config.compilerOptions.scripts.minify) {
       logger.info(`Minifying script...`);
       let minified =
-        lm.minify(contents.toString(), {
+        lm.minify(contents, {
           minifyAllGlobalVars: true,
           minifyTableKeyStrings: true,
           newlineSeparator: false,
