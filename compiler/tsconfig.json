@@ -25,6 +25,8 @@
   "ts-node": {
     "transpileOnly": true,
     "pretty": true,
-    "emit": false
+    "emit": false,
+    "compiler": "ts-patch/compiler",
+    "require": ["tsconfig-paths/register"]
   }
 }

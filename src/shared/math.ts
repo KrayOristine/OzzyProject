@@ -8,6 +8,7 @@ const abs = math.abs;
 const floor = math.floor;
 const sin = math.sin;
 const cos = math.cos;
+const acos = math.acos;
 const tan = math.tan;
 const atan = math.atan;
 const nmax = math.max;
@@ -17,9 +18,15 @@ const nmin = math.min;
  * Value on this enum will be inlined by typescript! (assuming you are not enabling erasableSyntaxOnly)
  */
 export const enum MathConst {
-  PI = 3.14159265358979323846,
+  PI = 3.141592653589793238462643383279502884,
+  HALF_PI = PI*0.5,
+  NATURAL_LOG_2 = 0.693147181,
   DEG2RAD = PI / 180.0,
   RAD2DEG = 180 / PI,
+  /**
+   * EPSILON that this library use when it cant use lua eq,lt,gt
+   */
+  EPSILON = 1e-9,
 }
 
 declare interface Vector2 {
@@ -121,6 +128,14 @@ export class Vec2 implements Vector2 {
 
   angleDeg(v2: Vec2) {
     return atan(this.x * v2.y + this.y * v2.x, this.x * v2.x + this.y * v2.y) * MathConst.RAD2DEG;
+  }
+
+  angleLine(v2: Vec2) {
+    return -atan(v2.y - this.y, v2.x - this.x);
+  }
+
+  angleLineDeg(v2: Vec2) {
+    return -atan(v2.y - this.y, v2.x - this.y) * MathConst.RAD2DEG;
   }
 
   lerp(v2: Vec2, t: number): Vec2 {
@@ -242,6 +257,34 @@ export class Vec2 implements Vector2 {
   fromArr<T extends number[]>(arr: T): Vec2 {
     return new Vec2(arr[0], arr[1]); // no safety needed, if you cause crash by passing shit, then it your fault
   }
+
+  toArr(): [number, number] {
+    return [this.x, this.y];
+  }
+
+  eq(v2: Vec2) {
+    return this.x == v2.x && this.y == v2.y;
+  }
+
+  neq(v2: Vec2) {
+    return !(this.x == v2.x && this.y == v2.y);
+  }
+
+  lt(v2: Vec2) {
+    return this.x < v2.x && this.y < v2.y;
+  }
+
+  gt(v2: Vec2) {
+    return this.x > v2.x && this.y > v2.y;
+  }
+
+  lteq(v2: Vec2) {
+    return this.x <= v2.x && this.y <= v2.y;
+  }
+
+  gteq(v2: Vec2) {
+    return this.x >= v2.x && this.y >= v2.y;
+  }
 }
 
 /**
@@ -262,6 +305,10 @@ export class Vec3 implements Vector3 {
 
   fromArr<T extends number[]>(arr: T): Vec3 {
     return new Vec3(arr[0], arr[1], arr[2]);
+  }
+
+  toArr(): [number, number, number] {
+    return [this.x, this.y, this.z];
   }
 
   add(v: Vec3): Vec3 {
@@ -603,6 +650,367 @@ export class Vec3 implements Vector3 {
     }
 
     return this;
+  }
+
+  eq(v2: Vec3) {
+    return this.x == v2.x && this.y == v2.y && this.z == v2.z;
+  }
+
+  neq(v2: Vec3) {
+    return !(this.x == v2.x && this.y == v2.y && this.z == v2.z);
+  }
+
+  lt(v2: Vec3) {
+    return this.x < v2.x && this.y < v2.y && this.z < v2.z;
+  }
+
+  gt(v2: Vec3) {
+    return this.x > v2.x && this.y > v2.y && this.z > v2.z;
+  }
+
+  lteq(v2: Vec3) {
+    return this.x <= v2.x && this.y <= v2.y && this.z <= v2.z;
+  }
+
+  gteq(v2: Vec3) {
+    return this.x >= v2.x && this.y >= v2.y && this.z >= v2.z;
+  }
+}
+
+/**
+ * Raylib vector 4 ported to tstl
+ * also attempted to optimize for tstl usage
+ */
+export class Vec4 implements Vector4 {
+  constructor(readonly x: number, readonly y: number, readonly z: number, readonly w: number) {}
+
+  add(v2: Vec4): Vec4 {
+    return new Vec4(this.x + v2.x, this.y + v2.y, this.z + v2.z, this.w + v2.w);
+  }
+
+  addValue(amt: number) {
+    return new Vec4(this.x + amt, this.y + amt, this.z + amt, this.w + amt);
+  }
+
+  sub(v2: Vec4): Vec4 {
+    return new Vec4(this.x - v2.x, this.y - v2.y, this.z - v2.z, this.w - v2.w);
+  }
+
+  subValue(amt: number) {
+    return new Vec4(this.x - amt, this.y - amt, this.z - amt, this.w - amt);
+  }
+
+  length() {
+    return sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
+  }
+
+  lengthSqr() {
+    return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+  }
+
+  dot(v2: Vec4) {
+    return this.x * v2.x + this.y * v2.y + this.z * v2.z + this.w * v2.w;
+  }
+
+  dist(v2: Vec4) {
+    return sqrt(
+      (this.x - v2.x) * (this.x - v2.x) +
+        (this.y - v2.y) * (this.y - v2.y) +
+        (this.z - v2.z) * (this.z - v2.z) +
+        (this.w - v2.w) * (this.w - v2.w)
+    );
+  }
+
+  distSqr(v2: Vec4) {
+    return (
+      (this.x - v2.x) * (this.x - v2.x) +
+      (this.y - v2.y) * (this.y - v2.y) +
+      (this.z - v2.z) * (this.z - v2.z) +
+      (this.w - v2.w) * (this.w - v2.w)
+    );
+  }
+
+  scale(scale: number): Vec4 {
+    return new Vec4(this.x * scale, this.y * scale, this.z * scale, this.w * scale);
+  }
+
+  mul(v2: Vec4): Vec4 {
+    return new Vec4(this.x * v2.x, this.y * v2.y, this.z * v2.z, this.w * v2.w);
+  }
+
+  neg(): Vec4 {
+    return new Vec4(-this.x, -this.y, -this.z, -this.w);
+  }
+
+  div(v2: Vec4): Vec4 {
+    return new Vec4(this.x / v2.x, this.y / v2.y, this.z / v2.z, this.w / v2.w);
+  }
+
+  normalize(): Vec4 {
+    const length = sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
+
+    if (length > 0) {
+      const ilength = 1.0 / length;
+
+      return new Vec4(this.x * ilength, this.y * ilength, this.z * ilength, this.w * ilength);
+    }
+
+    return this;
+  }
+
+  min(v2: Vec4): Vec4 {
+    return new Vec4(nmin(this.x, v2.x), nmin(this.y, v2.y), nmin(this.z, v2.z), nmin(this.w, v2.w));
+  }
+
+  max(v2: Vec4): Vec4 {
+    return new Vec4(nmax(this.x, v2.x), nmax(this.y, v2.y), nmax(this.z, v2.z), nmax(this.w, v2.w));
+  }
+
+  lerp(v2: Vec4, t: number): Vec4 {
+    return new Vec4(
+      this.x + t * (v2.x - this.x),
+      this.y + t * (v2.y - this.y),
+      this.z + t * (v2.z - this.z),
+      this.w + t * (v2.w - this.w)
+    );
+  }
+
+  moveToward(v2: Vec4, maxDist: number): Vec4 {
+    const dx = v2.x - this.x;
+    const dy = v2.y - this.y;
+    const dz = v2.z - this.z;
+    const dw = v2.w - this.w;
+    const value = dx * dx + dy * dy + dz * dz + dw * dw;
+
+    if (value == 0 || (maxDist >= 0 && value <= maxDist * maxDist)) return v2;
+
+    const dist = sqrt(value);
+
+    return new Vec4(
+      this.x + (dx / dist) * maxDist,
+      this.y + (dy / dist) * maxDist,
+      this.z + (dz / dist) * maxDist,
+      this.w + (dw / dist) * maxDist
+    );
+  }
+
+  invert(): Vec4 {
+    return new Vec4(1 / this.x, 1 / this.y, 1 / this.z, 1 / this.w);
+  }
+
+  eq(v2: Vec4) {
+    return this.x == v2.x && this.y == v2.y && this.z == v2.z && this.w == v2.w;
+  }
+
+  neq(v2: Vec4) {
+    return !(this.x == v2.x && this.y == v2.y && this.z == v2.z && this.w == v2.w);
+  }
+
+  lt(v2: Vec4) {
+    return this.x < v2.x && this.y < v2.y && this.z < v2.z && this.w < v2.w;
+  }
+
+  gt(v2: Vec4) {
+    return this.x > v2.x && this.y > v2.y && this.z > v2.z && this.w > v2.w;
+  }
+
+  lteq(v2: Vec4) {
+    return this.x <= v2.x && this.y <= v2.y && this.z <= v2.z && this.w <= v2.w;
+  }
+
+  gteq(v2: Vec4) {
+    return this.x >= v2.x && this.y >= v2.y && this.z >= v2.z && this.w >= v2.w;
+  }
+}
+
+/**
+ * Vector 4 renamed
+ */
+export class Quat extends Vec4 implements Quaternion {
+  constructor(x: number, y: number, z: number, w: number) {
+    super(x, y, z, w);
+  }
+
+  nlerp(q2: Quat, t: number) {
+    // QuaternionLerp(q1, q2, amount)
+    const qx = this.x + t * (q2.x - this.x);
+    const qy = this.y + t * (q2.y - this.y);
+    const qz = this.z + t * (q2.z - this.z);
+    const qw = this.w + t * (q2.w - this.w);
+
+    // QuaternionNormalize(q);
+    const length = sqrt(qx * qw + qy * qw + qz * qw + qw * qw);
+    if (length == 0.0) return new Quat(qx, qy, qz, qw);
+    const ilength = 1.0 / length;
+
+    return new Quat(qx * ilength, qy * ilength, qz * ilength, qw * ilength);
+  }
+
+  slerp(q2: Quat, t: number) {
+    let cosHalfTheta = this.x * q2.x + this.y * q2.y + this.z * q2.z + this.w * q2.w;
+
+    let qx = q2.x,
+      qy = q2.y,
+      qz = q2.z,
+      qw = q2.w;
+    if (cosHalfTheta < 0) {
+      qx = -q2.x;
+      qy = -q2.y;
+      qz = -q2.z;
+      qw = -q2.w;
+      cosHalfTheta = -cosHalfTheta;
+    }
+
+    if (abs(cosHalfTheta) >= 1.0) return this;
+    else if (cosHalfTheta > 0.95) {
+      // QuaternionLerp(q1, q2, amount)
+      const qx = this.x + t * (q2.x - this.x);
+      const qy = this.y + t * (q2.y - this.y);
+      const qz = this.z + t * (q2.z - this.z);
+      const qw = this.w + t * (q2.w - this.w);
+
+      // QuaternionNormalize(q);
+      const length = sqrt(qx * qw + qy * qw + qz * qw + qw * qw);
+      if (length == 0.0) return new Quat(qx, qy, qz, qw);
+      const ilength = 1.0 / length;
+
+      return new Quat(qx * ilength, qy * ilength, qz * ilength, qw * ilength);
+    } else {
+      const halfTheta = acos(cosHalfTheta);
+      const sinHalfTheta = sqrt(1.0 - cosHalfTheta * cosHalfTheta);
+
+      if (abs(sinHalfTheta) < MathConst.EPSILON) {
+        return new Quat(
+          this.x * 0.5 + q2.x * 0.5,
+          this.y * 0.5 + q2.y * 0.5,
+          this.z * 0.5 + q2.z * 0.5,
+          this.w * 0.5 + q2.w * 0.5
+        );
+      } else {
+        const ratioA = sin((1 - t) * halfTheta) / sinHalfTheta;
+        const ratioB = sin(t * halfTheta) / sinHalfTheta;
+
+        return new Quat(
+          this.x * ratioA + q2.x * ratioB,
+          this.y * ratioA + q2.y * ratioB,
+          this.z * ratioA + q2.z * ratioB,
+          this.w * ratioA + q2.w * ratioB
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Easing
+ */
+export class Ease {
+  private constructor() {}
+
+  static linear(start: number, end: number, value: number) {
+    return start + value * (end - start);
+  }
+
+  static spring(start: number, end: number, value: number) {
+    return (
+      start +
+      (end - start) *
+        (sin(value * MathConst.PI * (0.2 + 2.5 *_pow(value, 3))) * _pow(1 - value, 2.2) + value) *
+        (1 + 1.2 * (1 - value))
+    );
+  }
+
+  static inQuad(start: number, end: number, value: number){
+    return (end-start) * _pow(value, 2) + start;
+  }
+
+  static outQuad(start: number, end: number, value: number){
+    return (-(end-start)) * value * (value-2) + start;
+  }
+
+  static inOutQuad(start: number, end: number, value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) * 0.5 * _pow(value, 2) + start;
+
+    return (-(end-start)) * 0.5 * (value * (value - 3) - 2) + start;
+  }
+
+  static inCubic(start: number, end: number, value: number){
+    return end * (_pow(value, 3)) + start;
+  }
+
+  static outCubic(start: number, end: number, value: number){
+    return (end-start) * (_pow((value-1), 3) + 1) + start
+  }
+
+  static inOutCubic(start: number, end: number, value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) * 0.5 * _pow(value, 3) + start
+
+    return (end-start) * 0.5 * (_pow((value-2), 3) + 2) + start;
+  }
+
+  static inQuart(start: number,end: number,value: number){
+    return (end-start) * _pow(value, 4) + start;
+  }
+
+  static outQuart(start: number,end: number,value: number){
+    return (-(end-start)) * (_pow((value-1), 4)-1) + start;
+  }
+
+  static inOutQuart(start: number,end: number,value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) * 0.5 * _pow(value, 4) + start
+
+    return (-(end-start)) * 0.5 * (_pow((value-2), 4) - 2) + start;
+  }
+
+  static inQuint(start: number,end: number,value: number){
+    return (end-start) * _pow(value, 5) + start;
+  }
+
+  static outQuint(start: number,end: number,value: number){
+    return (-(end-start)) * (_pow((value-1), 5)+1) + start;
+  }
+
+  static inOutQuint(start: number,end: number,value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) * 0.5 * _pow(value, 5) + start
+
+    return (-(end-start)) * 0.5 * (_pow((value-2), 5) + 2) + start;
+  }
+
+  static inSine(start: number,end: number,value: number){
+    end -= start;
+    return -end * cos(value * MathConst.HALF_PI) + end + start;
+  }
+
+  static outSine(start: number,end: number,value: number){
+    return (end-start) * sin(value * MathConst.HALF_PI) + start;
+  }
+
+  static inOutSine(start: number,end: number,value: number){
+    return (-(end-start)) * 0.5 * (cos(MathConst.PI * value)-1) + start;
+  }
+
+  static inExpo(start: number,end: number,value: number){
+    return (end-start) * _pow(2, (10 * (value - 1))) + start;
+  }
+
+  static outExpo(start: number,end: number,value: number){
+    return (end-start) * (-_pow(2, (-10 * value)) + 1) + start;
+  }
+
+  static inOutExpo(start: number,end: number,value: number){
+    value /= 0.5;
+
+    if (value < 1) return (end-start) *0.5 * _pow(2, (10 * (value - 1))) + start;
+
+    return (end-start) * 0.5 * (-_pow(2, (-10 * (value-1))) + 2) + start;
   }
 }
 

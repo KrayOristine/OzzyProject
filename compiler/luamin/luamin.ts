@@ -1,4 +1,5 @@
-import { randomBytes } from 'node:crypto';
+import { ParenthesizedExpression } from "./../luaparse/ast";
+import { randomBytes } from "node:crypto";
 import { Spread } from "../helper";
 import {
   StringCallExpression,
@@ -32,7 +33,7 @@ import {
   LabelStatement,
 } from "../luaparse/ast";
 import * as luaparse from "../luaparse/luaparse";
-import seedrandom from 'seedrandom';
+import seedrandom from "seedrandom";
 
 type LMOptions = {
   newlineSeparator: boolean;
@@ -61,33 +62,33 @@ var regexDigits = /[0-9]/;
 // https://www.lua.org/manual/5.4/manual.html#3.4.8
 // https://www.lua.org/source/5.4/lparser.c.html#priority
 // not supported yet: binary ~, <<, >>, //, unary~
-const PRECEDENCE = {
-  or: 1,
-  and: 2,
-  "<": 3,
-  ">": 3,
-  "<=": 3,
-  ">=": 3,
-  "~=": 3,
-  "==": 3,
-  "|": 4,
-  "~": 5,
-  "&": 6,
-  "<<": 7,
-  ">>": 7,
-  "..": 8,
-  "+": 9,
-  "-": 9, // binary -
-  "*": 10,
-  "/": 10,
-  "//": 10,
-  "%": 10,
-  unarynot: 11,
-  "unary#": 11,
-  "unary~": 11,
-  "unary-": 11, // unary -
-  "^": 12,
-};
+const PRECEDENCE: Map<string,number> = new Map();
+PRECEDENCE.set("or", 1);
+PRECEDENCE.set("and", 2);
+PRECEDENCE.set("<", 3);
+PRECEDENCE.set(">", 3);
+PRECEDENCE.set("<=", 3);
+PRECEDENCE.set(">=", 3);
+PRECEDENCE.set("~=", 3);
+PRECEDENCE.set("==", 3);
+PRECEDENCE.set("|", 4);
+PRECEDENCE.set("~", 5);
+PRECEDENCE.set("&", 6);
+PRECEDENCE.set("<<", 7);
+PRECEDENCE.set(">>", 7);
+PRECEDENCE.set("..", 8);
+PRECEDENCE.set("+", 9);
+PRECEDENCE.set("-", 9); // binary -
+PRECEDENCE.set("*", 10);
+PRECEDENCE.set("/", 10);
+PRECEDENCE.set("//", 10);
+PRECEDENCE.set("%", 10);
+PRECEDENCE.set("unarynot", 11);
+PRECEDENCE.set("unary#", 11);
+PRECEDENCE.set("unary~", 11);
+PRECEDENCE.set("unary-", 11); // unary -
+PRECEDENCE.set("^", 12);
+
 
 const IDENTIFIER_PARTS = [
   "0",
@@ -156,9 +157,6 @@ const IDENTIFIER_PARTS = [
 ];
 const IDENTIFIER_PARTS_MAX = IDENTIFIER_PARTS.length - 1;
 
-
-
-
 const each = function <T>(array: Array<T>, fn: (value: T, last: boolean) => any) {
   var index = -1;
   var length = array.length;
@@ -203,8 +201,9 @@ var generateZeroes = function (length: number) {
   return result;
 };
 
-// http://www.lua.org/manual/5.2/manual.html#3.1
+// http://www.lua.org/manual/5.3/manual.html#3.1
 function isKeyword(id: string) {
+  if (id === undefined || id == null) return false;
   switch (id.length) {
     case 2:
       return "do" == id || "if" == id || "in" == id || "or" == id;
@@ -222,14 +221,14 @@ function isKeyword(id: string) {
   return false;
 }
 
-const LMChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const LMChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const LMCharLen = LMChars.length;
 function generateCombinations(N: number): string[] {
   const result: string[] = [];
   const indices = new Array(N).fill(0);
-
+  console.log(`Generating 52^${N} amount of combinations`);
   while (true) {
-    let combination = '';
+    let combination = "";
     for (let i = 0; i < N; i++) {
       combination += LMChars[indices[i]];
     }
@@ -251,7 +250,7 @@ function generateCombinations(N: number): string[] {
   return result;
 }
 
-function reloadIdentifierList(list: string[], len: number){
+function reloadIdentifierList(list: string[], len: number) {
   // safety
   if (len > 5) {
     throw new Error("Is the script that are minifying are 1 billion lines long?");
@@ -259,23 +258,25 @@ function reloadIdentifierList(list: string[], len: number){
   const arr = generateCombinations(len);
   const arrLen = arr.length;
   const rd = randomBytes(512);
-  const rng = seedrandom(rd.toString('hex').slice(0, 255), {
+  const rng = seedrandom(rd.toString("hex").slice(0, 255), {
     entropy: true,
   });
 
-  for (let i = arrLen - 1 ; i > 0; i--) {
+  for (let i = arrLen - 1; i > 0; i--) {
     const j = Math.floor(rng.double() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+
+  list.push(...arr);
 }
 
-var currentIdentifier: string;
-var identifierMap: Record<string, string>;
-var identifiersInUse: Set<string>;
-var shortenedGlobalIdentifiers: Set<string>;
-var identifierLength: number;
-var identifierList: string[];
-var generateIdentifierRandom = function(originalName: string): string {
+var currentIdentifier: string = "";
+var identifierMap: Record<string, string> = {};
+var identifiersInUse: Set<string> = new Set();
+var shortenedGlobalIdentifiers: Set<string> = new Set();
+var identifierLength: number = 1;
+var identifierList: string[] = [];
+var generateIdentifierRandom = function (originalName: string): string {
   // Preserve `self` in methods
   if (originalName == "self") {
     return originalName;
@@ -285,19 +286,30 @@ var generateIdentifierRandom = function(originalName: string): string {
     return identifierMap[originalName];
   }
 
-  if (identifierList.length <= 0){
+  if (identifierList.length <= 0) {
     identifierLength++;
     reloadIdentifierList(identifierList, identifierLength);
   }
 
-  let iden = identifierList.pop()!;
+  let iden = identifierList.pop();
+  while (true) {
+    if (!iden) {
+      if (identifierList.length <= 0) {
+        identifierLength++;
+        reloadIdentifierList(identifierList, identifierLength);
+      }
+      iden = identifierList.pop();
+    } else {
+      break;
+    }
+  }
 
-  while (isKeyword(iden) || identifiersInUse.has(iden) || iden.length <= 0){
-    if (identifierList.length <= 0){
+  while (isKeyword(iden) || identifiersInUse.has(iden) || iden.length <= 0) {
+    if (identifierList.length <= 0) {
       identifierLength++;
       reloadIdentifierList(identifierList, identifierLength);
     }
-    iden = identifierList.pop() ?? '';
+    iden = identifierList.pop() ?? "";
   }
 
   identifierMap[originalName] = iden;
@@ -323,7 +335,10 @@ var generateIdentifierNormal = function (originalName: string): string {
     index = indexOf(IDENTIFIER_PARTS, character);
     if (index && index != IDENTIFIER_PARTS_MAX) {
       index = index as number;
-      currentIdentifier = currentIdentifier.substring(0, position) + IDENTIFIER_PARTS[index + 1] + generateZeroes(length - (position + 1));
+      currentIdentifier =
+        currentIdentifier.substring(0, position) +
+        IDENTIFIER_PARTS[index + 1] +
+        generateZeroes(length - (position + 1));
       if (isKeyword(currentIdentifier) || identifiersInUse.has(currentIdentifier)) {
         return generateIdentifierNormal(originalName);
       }
@@ -341,6 +356,15 @@ var generateIdentifierNormal = function (originalName: string): string {
 };
 
 var generateIdentifier: (originalName: string) => string;
+
+const luaDefault: Set<string> = new Set(["os", "table", "string", "utf8", "coroutine", "debug", "io", "package", "math"]);
+function canMinifyMemberName(exp: MemberExpression) {
+  if (exp.identifier.name.startsWith("_")) return false;
+
+  if (exp.base.type == "Identifier" && luaDefault.has(exp.base.name)) return false;
+
+  return true;
+}
 
 /*--------------------------------------------------------------------------*/
 
@@ -455,39 +479,51 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
     // In both cases, the '_' check is optional as globals starting with _ have been protected during pre-pass on ast.globals in minify.
     result =
       options!.forceGenerateIdentifiers ||
-      ((exp.isLocal || ((preferences.minifyAllGlobalVars || shortenedGlobalIdentifiers.has(exp.name)) && exp.name.substring(0, 1) != "_")) && !options!.preserveIdentifiers)
+      ((exp.isLocal ||
+        ((preferences.minifyAllGlobalVars || shortenedGlobalIdentifiers.has(exp.name)) &&
+          exp.name.substring(0, 1) != "_")) &&
+        !options!.preserveIdentifiers)
         ? generateIdentifier(exp.name)
         : exp.name;
-  } else if (expressionType == "StringLiteral" || expressionType == "BooleanLiteral" || expressionType == "NilLiteral" || expressionType == "VarargLiteral") {
+  } else if (
+    expressionType == "StringLiteral" ||
+    expressionType == "BooleanLiteral" ||
+    expressionType == "NilLiteral" ||
+    expressionType == "VarargLiteral"
+  ) {
     result = (expression as Literal).raw!;
   } else if (expressionType == "NumericLiteral") {
     const raw = (expression as NumericLiteral).raw!;
     const rlen = raw.length;
     let hasSeenNonZero = false;
 
-    // Remove leading zeros, while keeping at least one zero if the number is like "000.0006969"
-    for (let i = 0; i < rlen; i++) {
-      let char = raw.charAt(i);
-      if (char !== "0" || (char === "0" && result.includes(".") && !hasSeenNonZero)) {
-        hasSeenNonZero = true;
+    if (raw.startsWith("0x")) result = Number(raw).toString();
+    else {
+      // Remove leading zeros, while keeping at least one zero if the number is like "000.0006969"
+      for (let i = 0; i < rlen; i++) {
+        let char = raw.charAt(i);
+        if (char !== "0" || (char === "0" && result.includes(".") && !hasSeenNonZero)) {
+          hasSeenNonZero = true;
+        }
+
+        // Append character if it's non-zero or if a non-zero has been seen or if we are after a decimal point
+        if (hasSeenNonZero || char === ".") {
+          result += char;
+        }
       }
 
-      // Append character if it's non-zero or if a non-zero has been seen or if we are after a decimal point
-      if (hasSeenNonZero || char === ".") {
-        result += char;
+      // Remove trailing zeros after decimal point, but keep at least one trailing zero if it's immediately after the decimal point
+      if (result.indexOf(".") !== -1) {
+        while (result[result.length - 1] === "0") {
+          result = result.slice(0, -1);
+        }
+        // If there's a trailing dot, remove it unless the number is like "1.0"
+        if (result[result.length - 1] === "." && result.length !== result.indexOf(".") + 2) {
+          result = result.slice(0, -1);
+        }
       }
     }
 
-    // Remove trailing zeros after decimal point, but keep at least one trailing zero if it's immediately after the decimal point
-    if (result.indexOf(".") !== -1) {
-      while (result[result.length - 1] === "0") {
-        result = result.slice(0, -1);
-      }
-      // If there's a trailing dot, remove it unless the number is like "1.0"
-      if (result[result.length - 1] === "." && result.length !== result.indexOf(".") + 2) {
-        result = result.slice(0, -1);
-      }
-    }
     result ||= "0"; // Return "0" if the string is empty
   } else if (expressionType == "LogicalExpression" || expressionType == "BinaryExpression") {
     let exp = expression as LogicalExpression;
@@ -495,7 +531,7 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
     // contains an expression with precedence < x,
     // the inner expression must be wrapped in parens.
     operator = exp.operator;
-    currentPrecedence = PRECEDENCE[operator];
+    currentPrecedence = PRECEDENCE.get(operator);
     associativity = "?left";
 
     result = formatExpression(exp.left, preferences, {
@@ -543,7 +579,7 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
   } else if (expressionType == "UnaryExpression") {
     let exp = expression as UnaryExpression;
     operator = exp.operator;
-    currentPrecedence = PRECEDENCE["unary" + operator];
+    currentPrecedence = PRECEDENCE.get("unary" + operator);
 
     result = joinStatements(
       operator,
@@ -570,7 +606,10 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
     }
   } else if (expressionType == "CallExpression") {
     let exp = expression as CallExpression;
-    if (exp.arguments.length == 1 && (exp.arguments[0].type == "TableConstructorExpression" || exp.arguments[0].type == "StringLiteral")) {
+    if (
+      exp.arguments.length == 1 &&
+      (exp.arguments[0].type == "TableConstructorExpression" || exp.arguments[0].type == "StringLiteral")
+    ) {
       let abase = formatExpression(exp.base, preferences, {});
       let barg = formatExpression(exp.arguments[0], preferences, {});
       result = (abase && barg ? abase + barg : abase ? abase : barg) ?? "";
@@ -622,7 +661,7 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
       exp.indexer +
       formatExpression(exp.identifier, preferences, {
         preserveIdentifiers: true,
-        forceGenerateIdentifiers: preferences.minifyMemberNames && exp.identifier.name.substring(0, 1) != "_",
+        forceGenerateIdentifiers: preferences.minifyMemberNames && canMinifyMemberName(exp),
       });
   } else if (expressionType == "FunctionDeclaration") {
     let exp = expression as FunctionDeclaration;
@@ -649,7 +688,8 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
 
     each(exp.fields, function (field, needsComma) {
       if (field.type == "TableKey") {
-        result += "[" + formatExpression(field.key, preferences, {}) + "]=" + formatExpression(field.value, preferences, {});
+        result +=
+          "[" + formatExpression(field.key, preferences, {}) + "]=" + formatExpression(field.value, preferences, {});
       } else if (field.type == "TableValue") {
         result += formatExpression(field.value, preferences, {});
       } else {
@@ -670,8 +710,16 @@ var formatExpression = function (expression: Node, preferences: LMOptions, optio
     });
 
     result += "}";
+  } else if (expressionType == "ParenthesizedExpression") {
+    const exp = expression as ParenthesizedExpression;
+
+    result = "(";
+
+    result += formatExpression(exp.expression, preferences, {});
+
+    result += ")";
   } else {
-    throw TypeError("Unknown expression type: `" + expressionType + "`");
+    throw new TypeError("Unknown expression type: " + expressionType);
   }
 
   return result;
@@ -966,17 +1014,82 @@ var minify = function (code: string, preferences: LMOptions) {
     });
   }
 
+  // default lua globalvars
+  identifierMap["_G"] = "_G";
+  identifiersInUse.add("_G");
+  identifierMap["_VERSION"] = "_VERSION";
+  identifiersInUse.add("_VERSION");
+  identifierMap["_ENV"] = "_ENV";
+  identifiersInUse.add("_ENV");
+  identifierMap["table"] = "table";
+  identifiersInUse.add("table");
+  identifierMap["string"] = "string";
+  identifiersInUse.add("string");
+  identifierMap["math"] = "math";
+  identifiersInUse.add("math");
+  identifierMap["coroutine"] = "coroutine";
+  identifiersInUse.add("coroutine");
+  identifierMap["os"] = "os";
+  identifiersInUse.add("os");
+  identifierMap["utf8"] = "utf8";
+  identifiersInUse.add("utf8");
+
+  // default lua function
+  identifierMap["assert"] = "assert";
+  identifiersInUse.add("assert");
+  identifierMap["collectgarbage"] = "collectgarbage";
+  identifiersInUse.add("collectgarbage");
+  identifierMap["dofile"] = "dofile";
+  identifiersInUse.add("dofile");
+  identifierMap["error"] = "error";
+  identifiersInUse.add("error");
+  identifierMap["getmetatable"] = "getmetatable";
+  identifiersInUse.add("getmetatable");
+  identifierMap["ipairs"] = "ipairs";
+  identifiersInUse.add("ipairs");
+  identifierMap["load"] = "load";
+  identifiersInUse.add("load");
+  identifierMap["loadfile"] = "loadfile";
+  identifiersInUse.add("loadfile");
+  identifierMap["next"] = "next";
+  identifiersInUse.add("next");
+  identifierMap["pairs"] = "pairs";
+  identifiersInUse.add("pairs");
+  identifierMap["pcall"] = "pcall";
+  identifiersInUse.add("pcall");
+  identifierMap["print"] = "print";
+  identifiersInUse.add("print");
+  identifierMap["rawequal"] = "rawequal";
+  identifiersInUse.add("rawequal");
+  identifierMap["rawget"] = "rawget";
+  identifiersInUse.add("rawget");
+  identifierMap["rawlen"] = "rawlen";
+  identifiersInUse.add("rawlen");
+  identifierMap["rawset"] = "rawset";
+  identifiersInUse.add("rawset");
+  identifierMap["require"] = "require";
+  identifiersInUse.add("require");
+  identifierMap["select"] = "select";
+  identifiersInUse.add("select");
+  identifierMap["setmetatable"] = "setmetatable";
+  identifiersInUse.add("setmetatable");
+  identifierMap["tonumber"] = "tonumber";
+  identifiersInUse.add("tonumber");
+  identifierMap["tostring"] = "tostring";
+  identifiersInUse.add("tostring");
+  identifierMap["type"] = "type";
+  identifiersInUse.add("type");
+  identifierMap["xpcall"] = "xpcall";
+  identifiersInUse.add("xpcall");
+
   if (preferences.randomIdentifiers === true) {
     // we cant randomize number!!!
     // or could we?, probably remove the number entirety is okay
     generateIdentifier = generateIdentifierRandom;
     reloadIdentifierList(identifierList, identifierLength);
-  }
-  else {
+  } else {
     generateIdentifier = generateIdentifierNormal;
   }
-
-
 
   // Make sure global variable names aren't renamed
   // unless we want to minify global variables (assigned or all) and the name doesn't start with '_'.
