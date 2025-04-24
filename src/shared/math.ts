@@ -14,19 +14,10 @@ const atan = math.atan;
 const nmax = math.max;
 const nmin = math.min;
 
-/**
- * Value on this enum will be inlined by typescript! (assuming you are not enabling erasableSyntaxOnly)
- */
-export const enum MathConst {
-  PI = 3.141592653589793238462643383279502884,
-  HALF_PI = PI*0.5,
-  NATURAL_LOG_2 = 0.693147181,
-  DEG2RAD = PI / 180.0,
-  RAD2DEG = 180 / PI,
-  /**
-   * EPSILON that this library use when it cant use lua eq,lt,gt
-   */
-  EPSILON = 1e-9,
+type EasingFunction = (progress: number) => number;
+
+interface EasingDictionary {
+  [easing: string]: EasingFunction;
 }
 
 declare interface Vector2 {
@@ -41,6 +32,33 @@ declare interface Vector4 extends Vector3 {
 }
 
 declare interface Quaternion extends Vector4 {}
+
+/**
+ * Value on this enum will be inlined by typescript! (assuming you are not enabling erasableSyntaxOnly)
+ */
+export const enum MathConst {
+  PI = 3.141592653589793238462643383279502884,
+  HALF_PI = PI * 0.5,
+  NATURAL_LOG_2 = 0.693147181,
+  DEG2RAD = PI / 180.0,
+  RAD2DEG = 180 / PI,
+  /**
+   * EPSILON that this library use when it cant use lua eq,lt,gt
+   */
+  EPSILON = 1e-9,
+
+  EASE_c1 = 1.70158,
+  EASE_c2 = MathConst.EASE_c1 * 1.525,
+  EASE_c3 = MathConst.EASE_c1 + 1,
+  EASE_c4 = (2 * PI) / 3,
+  EASE_c5 = (2 * PI) / 4.5,
+  EASE_c6 = 1 / 2.75,
+  EASE_c7 = 2 / 2.75,
+  EASE_c8 = 2.5 / 2.75,
+  EASE_c9 = 1.5 / 2.75,
+  EASE_c10 = 2.25 / 2.75,
+  EASE_c11 = 2.625 / 2.75,
+}
 
 export function Clamp(v: number, min: number, max: number) {
   return nmin(max, nmax(v, min));
@@ -904,115 +922,158 @@ export class Quat extends Vec4 implements Quaternion {
 /**
  * Easing
  */
-export class Ease {
-  private constructor() {}
-
-  static linear(start: number, end: number, value: number) {
-    return start + value * (end - start);
-  }
-
-  static spring(start: number, end: number, value: number) {
-    return (
-      start +
-      (end - start) *
-        (sin(value * MathConst.PI * (0.2 + 2.5 *_pow(value, 3))) * _pow(1 - value, 2.2) + value) *
-        (1 + 1.2 * (1 - value))
-    );
-  }
-
-  static inQuad(start: number, end: number, value: number){
-    return (end-start) * _pow(value, 2) + start;
-  }
-
-  static outQuad(start: number, end: number, value: number){
-    return (-(end-start)) * value * (value-2) + start;
-  }
-
-  static inOutQuad(start: number, end: number, value: number){
-    value /= 0.5;
-
-    if (value < 1) return (end-start) * 0.5 * _pow(value, 2) + start;
-
-    return (-(end-start)) * 0.5 * (value * (value - 3) - 2) + start;
-  }
-
-  static inCubic(start: number, end: number, value: number){
-    return end * (_pow(value, 3)) + start;
-  }
-
-  static outCubic(start: number, end: number, value: number){
-    return (end-start) * (_pow((value-1), 3) + 1) + start
-  }
-
-  static inOutCubic(start: number, end: number, value: number){
-    value /= 0.5;
-
-    if (value < 1) return (end-start) * 0.5 * _pow(value, 3) + start
-
-    return (end-start) * 0.5 * (_pow((value-2), 3) + 2) + start;
-  }
-
-  static inQuart(start: number,end: number,value: number){
-    return (end-start) * _pow(value, 4) + start;
-  }
-
-  static outQuart(start: number,end: number,value: number){
-    return (-(end-start)) * (_pow((value-1), 4)-1) + start;
-  }
-
-  static inOutQuart(start: number,end: number,value: number){
-    value /= 0.5;
-
-    if (value < 1) return (end-start) * 0.5 * _pow(value, 4) + start
-
-    return (-(end-start)) * 0.5 * (_pow((value-2), 4) - 2) + start;
-  }
-
-  static inQuint(start: number,end: number,value: number){
-    return (end-start) * _pow(value, 5) + start;
-  }
-
-  static outQuint(start: number,end: number,value: number){
-    return (-(end-start)) * (_pow((value-1), 5)+1) + start;
-  }
-
-  static inOutQuint(start: number,end: number,value: number){
-    value /= 0.5;
-
-    if (value < 1) return (end-start) * 0.5 * _pow(value, 5) + start
-
-    return (-(end-start)) * 0.5 * (_pow((value-2), 5) + 2) + start;
-  }
-
-  static inSine(start: number,end: number,value: number){
-    end -= start;
-    return -end * cos(value * MathConst.HALF_PI) + end + start;
-  }
-
-  static outSine(start: number,end: number,value: number){
-    return (end-start) * sin(value * MathConst.HALF_PI) + start;
-  }
-
-  static inOutSine(start: number,end: number,value: number){
-    return (-(end-start)) * 0.5 * (cos(MathConst.PI * value)-1) + start;
-  }
-
-  static inExpo(start: number,end: number,value: number){
-    return (end-start) * _pow(2, (10 * (value - 1))) + start;
-  }
-
-  static outExpo(start: number,end: number,value: number){
-    return (end-start) * (-_pow(2, (-10 * value)) + 1) + start;
-  }
-
-  static inOutExpo(start: number,end: number,value: number){
-    value /= 0.5;
-
-    if (value < 1) return (end-start) *0.5 * _pow(2, (10 * (value - 1))) + start;
-
-    return (end-start) * 0.5 * (-_pow(2, (-10 * (value-1))) + 2) + start;
-  }
-}
+export const Easing: EasingDictionary = {
+  linear: (x) => x,
+  easeInQuad: function (x) {
+    return x * x;
+  },
+  easeOutQuad: function (x) {
+    return 1 - (1 - x) * (1 - x);
+  },
+  easeInOutQuad: function (x) {
+    return x < 0.5 ? 2 * x * x : 1 - _pow(-2 * x + 2, 2) / 2;
+  },
+  easeInCubic: function (x) {
+    return x * x * x;
+  },
+  easeOutCubic: function (x) {
+    return 1 - _pow(1 - x, 3);
+  },
+  easeInOutCubic: function (x) {
+    return x < 0.5 ? 4 * x * x * x : 1 - _pow(-2 * x + 2, 3) / 2;
+  },
+  easeInQuart: function (x) {
+    return x * x * x * x;
+  },
+  easeOutQuart: function (x) {
+    return 1 - _pow(1 - x, 4);
+  },
+  easeInOutQuart: function (x) {
+    return x < 0.5 ? 8 * x * x * x * x : 1 - _pow(-2 * x + 2, 4) / 2;
+  },
+  easeInQuint: function (x) {
+    return x * x * x * x * x;
+  },
+  easeOutQuint: function (x) {
+    return 1 - _pow(1 - x, 5);
+  },
+  easeInOutQuint: function (x) {
+    return x < 0.5 ? 16 * x * x * x * x * x : 1 - _pow(-2 * x + 2, 5) / 2;
+  },
+  easeInSine: function (x) {
+    return 1 - cos((x * MathConst.PI) / 2);
+  },
+  easeOutSine: function (x) {
+    return sin((x * MathConst.PI) / 2);
+  },
+  easeInOutSine: function (x) {
+    return -(cos(MathConst.PI * x) - 1) / 2;
+  },
+  easeInExpo: function (x) {
+    return x === 0 ? 0 : _pow(2, 10 * x - 10);
+  },
+  easeOutExpo: function (x) {
+    return x === 1 ? 1 : 1 - _pow(2, -10 * x);
+  },
+  easeInOutExpo: function (x) {
+    return x === 0 ? 0 : x === 1 ? 1 : x < 0.5 ? _pow(2, 20 * x - 10) / 2 : (2 - _pow(2, -20 * x + 10)) / 2;
+  },
+  easeInCirc: function (x) {
+    return 1 - sqrt(1 - _pow(x, 2));
+  },
+  easeOutCirc: function (x) {
+    return sqrt(1 - _pow(x - 1, 2));
+  },
+  easeInOutCirc: function (x) {
+    return x < 0.5 ? (1 - sqrt(1 - _pow(2 * x, 2))) / 2 : (sqrt(1 - _pow(-2 * x + 2, 2)) + 1) / 2;
+  },
+  easeInBack: function (x) {
+    return MathConst.EASE_c3 * x * x * x - MathConst.EASE_c1 * x * x;
+  },
+  easeOutBack: function (x) {
+    return 1 + MathConst.EASE_c3 * _pow(x - 1, 3) + MathConst.EASE_c1 * _pow(x - 1, 2);
+  },
+  easeInOutBack: function (x) {
+    return x < 0.5
+      ? (_pow(2 * x, 2) * ((MathConst.EASE_c2 + 1) * 2 * x - MathConst.EASE_c2)) / 2
+      : (_pow(2 * x - 2, 2) * ((MathConst.EASE_c2 + 1) * (x * 2 - 2) + MathConst.EASE_c2) + 2) / 2;
+  },
+  easeInElastic: function (x) {
+    return x === 0 ? 0 : x === 1 ? 1 : -_pow(2, 10 * x - 10) * sin((x * 10 - 10.75) * MathConst.EASE_c4);
+  },
+  easeOutElastic: function (x) {
+    return x === 0 ? 0 : x === 1 ? 1 : _pow(2, -10 * x) * sin((x * 10 - 0.75) * MathConst.EASE_c4) + 1;
+  },
+  easeInOutElastic: function (x) {
+    return x === 0
+      ? 0
+      : x === 1
+      ? 1
+      : x < 0.5
+      ? -(_pow(2, 20 * x - 10) * sin((20 * x - 11.125) * MathConst.EASE_c5)) / 2
+      : (_pow(2, -20 * x + 10) * sin((20 * x - 11.125) * MathConst.EASE_c5)) / 2 + 1;
+  },
+  easeInBounce: function (x) {
+    x = 1 - x;
+    if (x < MathConst.EASE_c6) {
+      return 1 - 7.5625 * _pow(x, 2);
+    } else if (x < MathConst.EASE_c7) {
+      x -= MathConst.EASE_c9;
+      return 1 - (7.5625 * _pow(x, 2) + 0.75);
+    } else if (x < MathConst.EASE_c8) {
+      x -= MathConst.EASE_c10;
+      return 1 - (7.5625 * _pow(x, 2) + 0.9375);
+    } else {
+      x -= MathConst.EASE_c11;
+      return 1 - (7.5625 * _pow(x, 2) + 0.984375);
+    }
+  },
+  easeOutBounce: function (x) {
+    if (x < MathConst.EASE_c6) {
+      return 7.5625 * _pow(x, 2);
+    } else if (x < MathConst.EASE_c7) {
+      x -= MathConst.EASE_c9;
+      return 7.5625 * _pow(x, 2) + 0.75;
+    } else if (x < MathConst.EASE_c8) {
+      x -= MathConst.EASE_c10;
+      return 7.5625 * _pow(x, 2) + 0.9375;
+    } else {
+      x -= MathConst.EASE_c11;
+      return 7.5625 * _pow(x, 2) + 0.984375;
+    }
+  },
+  easeInOutBounce: function (x) {
+    if (x < 0.5) {
+      x = 2 * x - 1;
+      if (x < MathConst.EASE_c6) {
+        return (1 - 7.5625 * _pow(x, 2)) / 2;
+      } else if (x < MathConst.EASE_c7) {
+        x -= MathConst.EASE_c9;
+        return (1 - (7.5625 * _pow(x, 2) + 0.75)) / 2;
+      } else if (x < MathConst.EASE_c8) {
+        x -= MathConst.EASE_c10;
+        return (1 - (7.5625 * _pow(x, 2) + 0.9375)) / 2;
+      } else {
+        x -= MathConst.EASE_c11;
+        return (1 - (7.5625 * _pow(x, 2) + 0.984375)) / 2;
+      }
+    } else {
+      x = 2 * x - 1;
+      if (x < MathConst.EASE_c6) {
+        return (1 + 7.5625 * _pow(x, 2)) / 2;
+      } else if (x < MathConst.EASE_c7) {
+        x -= MathConst.EASE_c9;
+        return (1 + (7.5625 * _pow(x, 2) + 0.75)) / 2;
+      } else if (x < MathConst.EASE_c8) {
+        x -= MathConst.EASE_c10;
+        return (1 + (7.5625 * _pow(x, 2) + 0.9375)) / 2;
+      } else {
+        x -= MathConst.EASE_c11;
+        return (1 + (7.5625 * _pow(x, 2) + 0.984375)) / 2;
+      }
+    }
+  },
+};
 
 export function Lerp(a: number, b: number, t: number) {
   return a + t * (b - a);
