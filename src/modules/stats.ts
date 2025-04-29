@@ -1,16 +1,25 @@
+import { Actor } from './actor';
 
+/**
+ * Interface for attribute
+ */
 export interface Attribute {
-  int?: number,
-  float?: number,
+  int?: boolean,
+  float?: boolean,
   name: string, // should be within 4 character
 }
 
 export interface IntegerAttribute extends Attribute {
-  int: number,
+  int: true,
 }
 
 export interface FloatAttribute extends Attribute {
-  float: number,
+  float: true,
+}
+
+export interface Attributes {
+  data: number[],
+  owner: Actor,
 }
 
 export const enum AttributeType {

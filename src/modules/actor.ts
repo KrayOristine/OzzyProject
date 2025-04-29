@@ -1,5 +1,5 @@
 import { Vec2 } from '@/shared/math';
-import { Attribute } from './stats';
+import { Attributes } from './stats';
 
 //
 export interface SimpleActor {
@@ -16,7 +16,7 @@ export interface SimpleActor {
 export interface Actor extends SimpleActor {
 
   // TODO: create stats system and replace this
-  stats: Attribute[],
+  stats: Attributes,
 }
 
 export const enum ActorFlag {

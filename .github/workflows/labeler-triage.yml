@@ -2,16 +2,24 @@ name: "Pull Request Labeler"
 
 on:
   pull_request:
+    types:
+      - 'opened'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
-  triage:
-    permissions:
-      contents: read
-      pull-requests: write
-      issues: write
-
+  labeler:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+
     steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: KrayOristine/OzzyProject
+
     - uses: actions/labeler@v5
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"

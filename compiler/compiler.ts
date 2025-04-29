@@ -1,9 +1,10 @@
-import { getMapName, getPreservedName, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils";
+import { getMapName, GetWorkerPath, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils";
 import { xxh3 } from "@node-rs/xxhash";
 import lm from "./luamin/luamin";
 import * as fs from "fs-extra";
 import tstl from "typescript-to-lua";
 import { DiagnosticCategory } from 'typescript';
+import { Worker } from 'node:worker_threads';
 
 interface MapFileCache {
   // filePath: "hash"
@@ -100,7 +101,7 @@ export async function mapBuildCache(mapUrl: string, mapDest: string) {
 /**
  *
  */
-export async function compileMap(config: IProjectConfig) {
+export async function compileMap(config: IProjectConfig, minify: boolean) {
   if (!config.compilerOptions.baseUrl || config.compilerOptions.baseUrl === "") {
     logger.error(`[config.json]: baseUrl is empty!`);
     return false;
@@ -151,6 +152,12 @@ export async function compileMap(config: IProjectConfig) {
   }
 
   try {
+    let getPreserve;
+    if (minify){
+      const workerA = new Worker(GetWorkerPath('./worker/processPreserve.ts', __filename), {execArgv: ['-r', 'ts-node/register']});
+      const workerB = new Worker(GetWorkerPath('./worker/processPreserve.ts', __filename), {execArgv: ['-r', 'ts-node/register']});
+
+    }
     const readMap = fs.readFile(mapLua);
     const readTs = fs.readFile(tsLua);
     const getPreserve = getPreservedName();
@@ -164,7 +171,7 @@ export async function compileMap(config: IProjectConfig) {
     let contents = processScriptIncludes(ct.toString());
     const preserved = await getPreserve;
 
-    if (config.compilerOptions.scripts.minify) {
+    if (minify) {
       logger.info(`Minifying script...`);
       let minified =
         lm.minify(contents, {

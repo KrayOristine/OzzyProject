@@ -20,6 +20,7 @@
     "lib": ["ESNext"],
     "moduleResolution": "node10",
     "types": [
+      "node",
       "lua.d.ts",
       "common.j.d.ts",
       "helperType.d.ts",
@@ -41,7 +42,7 @@
     "luaLibImport": "require",
     "measurePerformance": true,
     "sourceMapTraceback": false,
-    "tstlVerbose": false,
+    "tstlVerbose": true,
     "luaPlugins": [
       {
         "name": "./compiler/tstl-plugs.ts"

@@ -145,99 +145,7 @@ export function getFilesInDirectory(dir: string) {
   return files;
 }
 
-function fmtStr(arr: RegExpExecArray) {
-  const r = [];
-  for (let i = 1; i < arr.length; i++) {
-    const str = arr[i];
-    if (str === undefined || str === null) {
-      r.push(`${i}/0`);
-      continue;
-    }
 
-    const valid = str.trim();
-    if (valid.length <= 0 || valid === "") {
-      r.push(`${i}/0`);
-      continue;
-    }
-
-    r.push(`${i}/${valid}`);
-  }
-
-  return r.join(",");
-}
-
-function checkValid(which: string, val: string) {
-  if (val === undefined || val === null) return false;
-
-  const str = val.toLowerCase().trim();
-  if (str.length === 0 || str === "") return false;
-
-  return str == which;
-}
-
-async function capture(source: Promise<string>, regex: RegExp, native: string[], variable: string[], func: string[]) {
-  const sourceData = await source;
-  let m = regex.exec(sourceData);
-  while (m !== null) {
-    if (m.index === regex.lastIndex) {
-      regex.lastIndex++;
-    }
-
-    // https://regex101.com/r/Zy6QfV/1 -- saved for future
-    const name = m[16];
-    const isConst = checkValid("constant", m[2]); // what do you expect me to do?
-    const isFunc = checkValid("function", m[2]);
-    const isNative = checkValid("native", m[10]) || checkValid("native", m[2]);
-    const isVar = !(isFunc || isNative);
-    // which kind
-
-    // console.log(
-    //   `[Native Matcher] Found match: ${name} - Is Const/Func/Native/Var: ${isConst ? 1 : 0}/${isFunc ? 1 : 0}/${
-    //     isNative ? 1 : 0
-    //   }/${isVar ? 1 : 0} - Array of V: [${fmtStr(m)}]`
-    // );
-    if (isFunc) {
-      func.push(name);
-    } else if (isNative) {
-      native.push(name);
-    } else if (isVar) {
-      variable.push(name);
-    }
-
-    m = regex.exec(sourceData);
-  }
-}
-
-const enum Inliner {
-  ValidType = "string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect",
-}
-
-export async function getPreservedName(forceGenerate: boolean = false): Promise<{ native: string[]; func: string[]; variable: string[] }> {
-  if (!forceGenerate && fs.existsSync("./preserveNameCache.json")) {
-    return JSON.parse(fs.readFileSync("./preserveNameCache.json", {encoding: 'utf8'}));
-  }
-
-  const bliz = fs.readFile("./compiler/Blizzard.j", { encoding: "utf-8" });
-  const nat = fs.readFile("./compiler/common.j", { encoding: "utf-8" });
-
-  const native: string[] = [];
-  const func: string[] = [];
-  const variable: string[] = [];
-
-  //const regexA = new RegExp(`^([\\t ]+)?((constant )|(function )|(native )|((${Inliner.ValidType}) (array )?))([ \\t]+)?((native )|((${Inliner.ValidType}) (array )?))?([ \\t]+)?(\\w+)(([ \\t]+)(takes|\\=)? [, \\w\\d\\t\\"\\'\\(\\)]+)?\\n?$`, "gm");
-  const regexB =
-    /^([\t ]+)?((constant )|(function )|(native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))([ \t]+)?((native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))?([ \t]+)?(\w+)(([ \t]+)(takes|\=)? [, \w\d\t\"\'\(\)]+)?\n?$/gm;
-
-  let capNat = capture(nat, regexB, native, variable, func);
-  let capBlit = capture(bliz, regexB, native, variable, func);
-
-  await Promise.allSettled([capNat, capBlit]);
-
-  let result = { native: native, func: func, variable: variable };
-
-  fs.writeFileSync("./preserveNameCache.json", JSON.stringify(result));
-  return result;
-}
 
 export function updateTSConfig(mapFolder: string) {
   const tsconfig = loadTSConfig();
@@ -250,6 +158,10 @@ export function updateTSConfig(mapFolder: string) {
   plugin[0].outputDir = path.resolve("dist", mapFolder).replace(/\\/g, "/");
 
   writeFileSync("tsconfig.json", JSON.stringify(tsconfig, undefined, 2));
+}
+
+export function GetWorkerPath(path: string, fn: string){
+  return new URL(path, require('url').pathToFileURL(fn).href);
 }
 
 export function updateProjectConfig() {

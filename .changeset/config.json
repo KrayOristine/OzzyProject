@@ -21,6 +21,7 @@
     "prereleaseTemplate": "{tag} {commit}-{timestamp}"
   },
   "changedFilePatterns": [
-    "../src/**"
+    "../src/**",
+    "../compiler/**"
   ]
 }

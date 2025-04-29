@@ -1,0 +1,9 @@
+# package
+auto-install-peers: true
+node-linker: hoisted
+
+# node
+nodeVersion: 23.10.0
+nodeOptions: >
+  NODE_COMPILE_CACHE = ".node-cache"
+

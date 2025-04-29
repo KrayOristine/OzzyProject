@@ -1,21 +1,19 @@
 import * as fs from "fs-extra";
 import * as path from "path";
-import War3Map from "mdx-m3-viewer-th/dist/cjs/parsers/w3x/map";
-import { compileMap, getFilesInDirectory, loadProjectConfig, logger, toArrayBuffer } from "./utils";
+import War3Map from "@/mdx-m3/parsers/w3x/map";
+import { getFilesInDirectory, loadProjectConfig, logger, toArrayBuffer } from "./utils";
+import { compileMap } from "@/compiler";
 
 function main() {
   const config = loadProjectConfig();
   const minify = process.argv[2] === "-minify" || config.compilerOptions.scripts.minify;
 
-  if (minify !== config.compilerOptions.scripts.minify) {
-    logger.warn(`minifyScript has been overridden by command line argument "-minify"`);
-    config.compilerOptions.scripts.minify = minify;
-  }
-
-  const result = compileMap(config);
-
-  result.finally(() => {
-    if (!result) {
+  const result = compileMap(config, minify);
+  result.catch(()=>{
+    logger.error("Failed to compile map.");
+  })
+  result.then((v) => {
+    if (!v) {
       logger.error(`Failed to compile map.`);
       return;
     }
@@ -25,7 +23,10 @@ function main() {
       fs.mkdirSync(config.compilerOptions.outDir + "/dist/bin");
     }
 
-    createMapFromDir(`${config.compilerOptions.outDir}/dist/bin/${config.compilerOptions.mapName}`, `./dist/${config.compilerOptions.mapName}`);
+    createMapFromDir(
+      `${config.compilerOptions.outDir}/dist/bin/${config.compilerOptions.mapName}`,
+      `./dist/${config.compilerOptions.mapName}`
+    );
   });
 }
 
