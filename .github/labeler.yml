@@ -1,35 +1,35 @@
 game core:
-  changed-files:
-    any-glob-to-any-file: src/modules/**/*.ts
+  - changed-files:
+    - any-glob-to-any-file: src/modules/**/*.ts
 
 game utils:
-  changed-files:
-    any-glob-to-any-file: src/shared/**/*.ts
+  - changed-files:
+    - any-glob-to-any-file: src/shared/**/*.ts
 
 game:
-  changed-files:
-    any-glob-to-any-file: src/game/**/*.ts
+  - changed-files:
+    - any-glob-to-any-file: src/game/**/*.ts
 
 game lua:
-  changed-files:
-    any-glob-to-any-file: src/lua/**/*.lua
+  - changed-files:
+    - any-glob-to-any-file: src/lua/**/*.lua
 
 compiler:
-  changed-files:
-    any-glob-to-any-file: compiler/**/*.ts
+  - changed-files:
+    - any-glob-to-any-file: compiler/**/*.ts
 
 feature:
-  head-branch: ['^feature', 'feature', '^feat']
+  - head-branch: ['^feature', 'feature', '^feat']
 
 bug fix:
-  head-branch: ['^fix']
+  - head-branch: ['^fix']
 
 github_actions:
-  changed-files: .github/workflows/**/*
+  - changed-files: .github/workflows/**/*
 
 documentation:
-  changed-files:
-    any-glob-to-any-file:
+  - changed-files:
+    - any-glob-to-any-file:
       - '**/*.md'
       - 'src/types/**/*.d.ts'
       - 'src/game/lua/**/*.d.ts'
