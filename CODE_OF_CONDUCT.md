@@ -17,8 +17,10 @@ Any action below is considered harmful and/or not contributing to the community
 * Public or private harassment of any kind
 * Publishing people private information of any kind without their permission
   or consent
-* Aggressive and or offensive discussion of any kind of political, agenda, ideology topic and agressively changing
+* Agressive and or offensive discussion of any kind of political, agenda, ideology topic and agressively changing
   coding topic into political agenda, ideology topic
+* Agressive injection of political, ideology, agenda in any way
+* Calling people they are nazis, left-right, fascist, etc.
 
 ## Enforcement Responsibilities
 
@@ -58,9 +60,8 @@ the consequences for any action they deem in violation of this Code of Conduct:
 **Community Impact**: Use of inappropriate language or other behavior deemed
 unprofessional or unwelcome in the community.
 
-**Consequence**: A private, written warning from community leaders, providing
-clarity around the nature of the violation and an explanation of why the
-behavior was inappropriate.
+**Consequence**: A public direct written warning from community leaders, providing
+clarity around the nature of the violation.
 
 ### 2. Warning
 
@@ -73,7 +74,7 @@ Continously violating will lead to a permanent ban.
 
 ### 3. Permanent Ban
 
-**Community Impact**: Repeated violation.
+**Community Impact**: Repeated violation and or first violation of the last standard.
 
 **Consequence**: A permanent ban from any sort of public interaction within
 the community.
