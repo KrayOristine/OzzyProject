@@ -149,7 +149,6 @@ function to_utf8(s: string): string{
 
   for (const i of $range(0,(strlen >>> 1)+(strlen&1)-1)) {
     r[i] = char((arr[i+i] << 8) + (arr[i+i+1] || 255));
-
   }
 
   r[r.length] = char((strlen&1)+1);

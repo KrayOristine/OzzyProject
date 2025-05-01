@@ -72,7 +72,7 @@ let mouseSaneY = 0;
 let globalFrame = 0;
 
 
-
+// WE BEGIN EXTRA HOT, SUPER DUPER ULTIMATE INLINER
 const enum Inliner {
   // We begin hot! This here are the parameters for a Cybernetic Quadratic Lattice.
   // Cybernetic not in the sense of science fiction, but in the etymology's.
@@ -260,8 +260,8 @@ const MoveTracker = (x: number, y: number) => {
     curGap = trackerTilesGaps[lvl];
     clms = trackerTilesClms[lvl];
 
-    clmCenter = clms >> 1;
-    gapInd0 = (clms - curGap) >> 1;
+    clmCenter = clms >>> 1;
+    gapInd0 = (clms - curGap) >>> 1;
     gapInd1 = clms - gapInd0;
 
     for (const i of $range(0, clms - 1)) {
@@ -298,8 +298,8 @@ const UpdateTracker = () => {
     curGap = trackerTilesGaps[lvl];
     clms = trackerTilesClms[lvl];
 
-    clmCenter = clms >> 1;
-    gapInd0 = (clms - curGap) >> 1;
+    clmCenter = clms >>> 1;
+    gapInd0 = (clms - curGap) >>> 1;
     gapInd1 = clms - gapInd0;
 
     for (const i of $range(0, clms - 1)) {
@@ -370,7 +370,7 @@ const CreateTracker = () => {
     curGap = trackerTilesGaps[lvl];
     clms = trackerTilesClms[lvl];
 
-    gapInd0 = (clms - curGap) >> 1;
+    gapInd0 = (clms - curGap) >>> 1;
     gapInd1 = clms - gapInd0;
 
     for (const i of $range(0, clms - 1)) {
@@ -457,7 +457,7 @@ export function ResumeMouseTracker() {
 
   screenAspectRatio = screenWid / screenHei;
 
-  BlzSetMousePos(screenWid >> 1, screenHei >> 1);
+  BlzSetMousePos(screenWid >>> 1, screenHei >>> 1);
 
   MoveTracker(0, 0);
   SetTrackerVisible(true);
@@ -484,7 +484,7 @@ export function InitMouseTracker() {
 
   screenAspectRatio = screenWid / screenHei;
 
-  BlzSetMousePos(screenWid >> 1, screenHei >> 1);
+  BlzSetMousePos(screenWid >>> 1, screenHei >>> 1);
   CreateTracker();
 
   Fill(trackerXBuffer, Inliner.trackerBuffer, 0.0);

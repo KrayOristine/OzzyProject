@@ -13,6 +13,9 @@ const tan = math.tan;
 const atan = math.atan;
 const nmax = math.max;
 const nmin = math.min;
+//@ts-expect-error
+const pow = math.pow;
+
 
 type EasingFunction = (progress: number) => number;
 

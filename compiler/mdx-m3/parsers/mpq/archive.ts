@@ -7,7 +7,6 @@ import MpqCrypto from './crypto';
 import MpqFile from './file';
 import MpqHashTable from './hashtable';
 import { searchHeader } from './isarchive';
-import { toArrayBuffer } from '../../../utils';
 
 /**
  * MoPaQ archive (MPQ) version 0.

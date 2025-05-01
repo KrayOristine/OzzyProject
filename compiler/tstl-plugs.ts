@@ -46,42 +46,85 @@ function addCurrentWorkingPath(baseUrl: ts.CompilerOptions["baseUrl"]) {
 
 function createObjectLiteral(object: object): ts.ObjectLiteralExpression {
   const props = Object.keys(object)
-    .filter(key => Object.hasOwn(object, key))
+    .filter((key) => Object.hasOwn(object, key))
     //@ts-expect-error
-    .map(key => ts.factory.createPropertyAssignment(key, createExpression(object[key])))
-  return ts.factory.createObjectLiteralExpression(props, true)
+    .map((key) => ts.factory.createPropertyAssignment(key, createExpression(object[key])));
+  return ts.factory.createObjectLiteralExpression(props, true);
 }
 
+function calculateFourCC(str: string) {
+  const l = str.length;
+  if (l <= 0) return 0;
 
-function calculateFourCC(str: string){
-  let sum = 0;
-  let char = str.replace(' ', '').slice(1, -1);
-  if (char.length > 4) char = char.slice(0, 3);
-  for (let i = 0; i < char.length; i++){
-    let num = char[char.length - i - 1].charCodeAt(0);
-    sum += num * Math.pow(2, i * 8);
+  if (l == 4) {
+    return (str.charCodeAt(0) << 24) + (str.charCodeAt(1) << 16) + (str.charCodeAt(2) << 8) + str.charCodeAt(3);
+  } else if (l == 3) {
+    return (str.charCodeAt(0) << 16) + (str.charCodeAt(1) << 8) + str.charCodeAt(2);
+  } else if (l == 2) {
+    return (str.charCodeAt(0) << 8) + str.charCodeAt(1);
+  } else {
+    return str.charCodeAt(3);
   }
-  return sum;
 }
 
-function calculatePureCC(str: string) {
-  let sum = 0;
-  let char = str.slice(1, -1);
-  for (let i = 0; i < char.length; i++){
-    let num = char[char.length - i - 1].charCodeAt(0);
-    sum += num * Math.pow(2, i * 8);
+function str2cc(input: string | string[]) {
+  if (!Array.isArray(input)) {
+    const l = input.length;
+    if (l <= 0) return 0;
+
+    if (l == 4) {
+      return (
+        (input.charCodeAt(0) << 24) + (input.charCodeAt(1) << 16) + (input.charCodeAt(2) << 8) + input.charCodeAt(3)
+      );
+    } else if (l == 3) {
+      return (input.charCodeAt(0) << 16) + (input.charCodeAt(1) << 8) + input.charCodeAt(2);
+    } else if (l == 2) {
+      return (input.charCodeAt(0) << 8) + input.charCodeAt(1);
+    } else {
+      return input.charCodeAt(3);
+    }
   }
-  return sum;
+
+  const al = input.length;
+
+  if (al <= 0) return [];
+
+  const r = [];
+  let rl = 0;
+  for (let i = 0; i < al; i++) {
+    const str = input[i];
+    const l = str.length;
+    if (l <= 0) {
+      r[rl] = 0;
+      rl++;
+      continue;
+    }
+
+    if (l == 4) {
+      r[rl] = (str.charCodeAt(0) << 24) + (str.charCodeAt(1) << 16) + (str.charCodeAt(2) << 8) + str.charCodeAt(3);
+    } else if (l == 3) {
+      r[rl] = (str.charCodeAt(0) << 16) + (str.charCodeAt(1) << 8) + str.charCodeAt(2);
+    } else if (l == 2) {
+      r[rl] = (str.charCodeAt(0) << 8) + str.charCodeAt(1);
+    } else {
+      r[rl] = str.charCodeAt(3);
+    }
+
+    rl++;
+  }
+
+  return r;
 }
+
+function cc2str(input: number | number[]) {}
 
 function tryParseFunc(funcExpression: string, funcArgs: any) {
   try {
     return eval(funcExpression)(funcArgs);
-  } catch (ex){
+  } catch (ex) {
     return undefined;
   }
 }
-
 
 function parseNum(v: string): number {
   if (v.indexOf(".") >= 0) {
@@ -175,8 +218,6 @@ function processBinaryExpression(node: ts.BinaryExpression): number | false {
 }
 
 function processCallExpression(node: ts.CallExpression): number | false {
-
-
   const { expression } = node;
   if (!ts.isPropertyAccessExpression(expression)) return false;
 
@@ -222,72 +263,66 @@ function processImport(node: ts.ImportDeclaration, source: ts.SourceFile): ts.Im
 
   return ts.factory.updateImportDeclaration(node, node.modifiers, node.importClause, replaceStr, node.assertClause);
 }
+type callAction = (node: ts.CallExpression) => ts.LiteralExpression | ts.Expression | undefined;
+const callExpressionAction = new Map<string, callAction>();
 
-const callExpressionAction = {
-  FourCC: function(node: ts.CallExpression){
-    const args = node.arguments[0];
-    if (args.kind != ts.SyntaxKind.StringLiteral) return undefined;
+callExpressionAction.set("FourCC", function (node: ts.CallExpression) {
+  const args = node.arguments[0];
+  if (args.kind != ts.SyntaxKind.StringLiteral) return;
 
-    return ts.factory.createNumericLiteral(calculateFourCC(args.getFullText()));
-  },
-  FourCCArray: function(node: ts.CallExpression){
-    const args = node.arguments[0];
+  return ts.factory.createNumericLiteral(calculateFourCC(args.getFullText()));
+});
+callExpressionAction.set("FourCCArray", function (node: ts.CallExpression) {
+  const args = node.arguments[0];
+  if (!tsu.isArrayLiteralExpression(args)) return;
 
-    if (tsu.isArrayLiteralExpression(args)) {
-      const result: ts.NumericLiteral[] = [];
-      const ele = args.elements;
+  const result: ts.NumericLiteral[] = [];
+  const ele = args.elements;
 
-      for (const n of ele) {
-        if (n.kind != ts.SyntaxKind.StringLiteral) continue;
-        result.push(ts.factory.createNumericLiteral(calculateFourCC(n.getFullText())));
-      }
-
-      if (result.length == 0) return undefined;
-
-      return ts.factory.createArrayLiteralExpression(result);
-    };
-
-    return undefined
-  },
-  FourCCPure: function(node: ts.CallExpression){
-    const args = node.arguments[0];
-    if (args.kind != ts.SyntaxKind.StringLiteral) return undefined;
-
-    return ts.factory.createNumericLiteral(calculatePureCC(args.getFullText()));
-  },
-  compiletime: function(node: ts.CallExpression){
-    const argument = node.arguments[0];
-    const text = argument.getFullText();
-    let code = ts.transpile(text).trimEnd();
-
-    if (code[code.length - 1] === ";") {
-      code = code.substring(0, code.length - 1);
-    }
-    let result = tryParseFunc(code, { objectData: objData, fourCC: calculateFourCC, log: console.log })
-
-    if (typeof result === "object") {
-      return createObjectLiteral(result);
-    } else if (result === undefined || result === null) {
-      return ts.factory.createVoidZero();
-    } else if (typeof result === "function") {
-      throw new Error(`compiletime only supports primitive values`);
-    }
-
-    return ts.factory.createStringLiteral(result);
+  for (const n of ele) {
+    if (n.kind != ts.SyntaxKind.StringLiteral) continue;
+    result.push(ts.factory.createNumericLiteral(calculateFourCC(n.getFullText())));
   }
-}
 
-function processCompiletime(node: ts.CallExpression, check: ts.TypeChecker){
+  if (result.length == 0) return;
+
+  return ts.factory.createArrayLiteralExpression(result);
+});
+callExpressionAction.set("compiletime", function (node: ts.CallExpression) {
+  const argument = node.arguments[0];
+  const text = argument.getFullText();
+  let code = ts.transpile(text).trimEnd();
+
+  if (code[code.length - 1] === ";") {
+    code = code.substring(0, code.length - 1);
+  }
+  let result = tryParseFunc(code, { objectData: objData, from4cc: cc2str, to4cc: str2cc, log: console.log });
+
+  if (typeof result === "number" || typeof result === "bigint"){
+    return ts.factory.createNumericLiteral(typeof result === "bigint" ? result.toString() : result);
+  }
+
+  if (typeof result === "object") {
+    return createObjectLiteral(result);
+  } else if (result === undefined || result === null) {
+    return ts.factory.createVoidZero();
+  } else if (typeof result === "function") {
+    throw new Error(`compiletime only supports primitive values`);
+  }
+
+});
+
+function processCompiletime(node: ts.CallExpression, check: ts.TypeChecker): ts.LiteralExpression | ts.Expression | undefined {
   const sig = check.getResolvedSignature(node);
-  if (!sig || !sig.declaration) return undefined;
+  if (!sig || !sig.declaration) return;
 
   const decl = sig.declaration;
-  if (decl.kind != ts.SyntaxKind.FunctionDeclaration || decl.name == null) return undefined;
+  if (decl.kind != ts.SyntaxKind.FunctionDeclaration || decl.name == null) return;
   const funcName = decl.name.escapedText.toString();
 
-  if (funcName === "FourCC" || funcName === "FourCCArray" || funcName === "FourCCPure") return callExpressionAction[funcName](node);
+  if (callExpressionAction.has(funcName))
+    return callExpressionAction.get(funcName)!(node);
 
-  if (funcName === "compiletime") return callExpressionAction[funcName](node);
 }
 
 const plugin: tstl.Plugin = {
@@ -315,8 +350,7 @@ const plugin: tstl.Plugin = {
       }
 
       const r = processCompiletime(node, context.program.getTypeChecker());
-      if (r)
-        return context.superTransformExpression(r);
+      if (r) return context.superTransformExpression(r);
 
       return context.superTransformExpression(node);
     },
@@ -330,15 +364,14 @@ const plugin: tstl.Plugin = {
     },
     [ts.SyntaxKind.ImportDeclaration]: (node, context) => {
       const r = processImport(node, context.sourceFile);
-      if (r)
-        return context.superTransformStatements(r);
+      if (r) return context.superTransformStatements(r);
 
       return context.superTransformStatements(node);
     },
   },
 
   beforeEmit(program, options, emitHost, result) {
-      objData.save();
+    objData.save();
   },
 };
 

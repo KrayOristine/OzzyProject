@@ -129,7 +129,7 @@ class Sync {
       return idx;
     }
 
-    let m = _floorDiv(safe.length, Inliner.chunkSize);
+    let m = _fdiv(safe.length, Inliner.chunkSize);
 
     for (const i of $range(0, m)){
       const mul = i * Inliner.chunkSize;
