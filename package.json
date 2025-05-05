@@ -37,7 +37,7 @@
     "@changesets/cli": "^2.29.2",
     "@node-rs/xxhash": "^1.7.6",
     "@types/fs-extra": "11.0.4",
-    "@types/node": "22.14.1",
+    "@types/node": "22.15.3",
     "@types/pako": "2.0.3",
     "@types/seedrandom": "^3.0.8",
     "@typescript-to-lua/language-extensions": "^1.19.0",
