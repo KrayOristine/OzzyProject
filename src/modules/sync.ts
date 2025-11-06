@@ -51,10 +51,10 @@ class Sync {
     this.source = from;
   }
 
-  static init(){
-    let t = CreateTrigger();
+  static gae(){
+    const t = CreateTrigger();
     for (const i of $range(0, constant.max_player)){
-      let p = Player(i)!;
+      const p = Player(i)!;
       this.stack.set(p, new Sync(p));
       this.synced.set(p, new LuaTable());
       this.playerStream.set(p, new LuaTable());
@@ -84,9 +84,9 @@ class Sync {
     }
 
     const ps = Sync.playerStream.get(id)!;
-    //@ts-expect-error
+    //@ts-expect-error: Dirty hacks for performance
     const cid = concat2BytePair(sbyte(data, 2,3)[0]);
-    //@ts-expect-error
+    //@ts-expect-error: Dirty hacks for performance
     const cn = concat2BytePair(sbyte(data, 4,5)[0]);
 
     if (ps.get(streamId) == null){
@@ -129,7 +129,7 @@ class Sync {
       return idx;
     }
 
-    let m = _fdiv(safe.length, Inliner.chunkSize);
+    const m = _fdiv(safe.length, Inliner.chunkSize);
 
     for (const i of $range(0, m)){
       const mul = i * Inliner.chunkSize;

@@ -104,7 +104,7 @@ test/
 
 
 # config stuff
-config.json
+compile-config.json
 
 
 # action stuff

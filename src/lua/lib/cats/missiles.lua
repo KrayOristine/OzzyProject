@@ -77,7 +77,7 @@ do
     local function Cosh(x)
         return (exp(x) + exp(-x))/2
     end
-    
+
     local function Sinh(x)
         return (exp(x) - exp(-x))/2
     end
@@ -144,34 +144,30 @@ do
         local dx, dy, dz = missile.targetX - missile.launchX, missile.targetY - missile.launchY, missile.targetZ - missile.launchZ
         local dist = sqrt(dx*dx + dy*dy + dz*dz)
 
-        local angle = acos(dx/dist)
+        local phi = atan2(dy, dx)
+        local theta = atan2(-dz, sqrt(dx*dx + dy*dy))
 
-        local nx = 0
-        local ny = -dz
-        local nz = dy
+        local cosPhi = cos(phi)
+        local sinPhi = sin(phi)
+        local cosTheta = cos(theta)
+        local sinTheta = sin(theta)
 
-        local norm = sqrt(nx^2 + ny^2 + nz^2)
-        nx, ny, nz = nx/norm, ny/norm, nz/norm
+        missile.R11 = cosPhi*cosTheta
+        missile.R12 = -sinPhi
+        missile.R13 = cosPhi*sinTheta
+        missile.R21 = sinPhi*cosTheta
+        missile.R22 = cosPhi
+        missile.R23 = sinPhi*sinTheta
+        missile.R31 = -sinTheta
+        missile.R32 = 0
+        missile.R33 = cosTheta
 
-        local cosAngle = cos(angle)
-        local sinAngle = sin(angle)
-        local oneMinCos = 1 - cosAngle
-
-        missile.R11 = nx*nx*oneMinCos + cosAngle
-        missile.R12 = nx*ny*oneMinCos - nz*sinAngle
-        missile.R13 = nx*nz*oneMinCos + ny*sinAngle
-        missile.R21 = ny*nx*oneMinCos + nz*sinAngle
-        missile.R22 = ny*ny*oneMinCos + cosAngle
-        missile.R23 = ny*nz*oneMinCos - nx*sinAngle
-        missile.R31 = nz*nx*oneMinCos - ny*sinAngle
-        missile.R32 = nz*ny*oneMinCos + nx*sinAngle
-        missile.R33 = nz*nz*oneMinCos + cosAngle
-
+        missile.arc = missile.arc
         missile.cosArcAngle = cos((missile.arcAngle or 0)*bj_DEGTORAD)
         missile.sinArcAngle = sin((missile.arcAngle or 0)*bj_DEGTORAD)
         missile.coshArc = Cosh(missile.arc)
         missile.travelDist = dist
-        missile.dparam = missile.speed*INTERVAL/dist
+        missile.dparam = 2*missile.speed*INTERVAL/dist
 
         local timeDilation = sqrt(1 + (2*missile.arc*Sinh(-1))^2) --param goes from -1 to 1.
         local param
@@ -181,13 +177,13 @@ do
             param = -1 + missile.dparam
         end
         local xPrime = missile.travelDist*(param + 1)/2
-        local y = missile.travelDist*(Cosh(missile.arc*param) - missile.coshArc)
+        local y = missile.travelDist*(missile.coshArc - Cosh(missile.arc*param))
         local yPrime = y*missile.sinArcAngle
         local zPrime = y*missile.cosArcAngle
         local xNew = missile.launchX + missile.R11*xPrime + missile.R12*yPrime + missile.R13*zPrime
         local yNew = missile.launchY + missile.R21*xPrime + missile.R22*yPrime + missile.R23*zPrime
         local zNew = missile.launchZ + missile.R31*xPrime + missile.R32*yPrime + missile.R33*zPrime
-        dist = sqrt((xNew - missile.launchX)^2 + (yNew - missile.launchY) + (zNew - missile.launchZ))
+        dist = sqrt((xNew - missile.launchX)^2 + (yNew - missile.launchY)^2 + (zNew - missile.launchZ)^2)
         missile.vx = missile.speed*(xNew - missile.launchX)/dist
         missile.vy = missile.speed*(yNew - missile.launchY)/dist
         missile.vz = missile.speed*(zNew - missile.launchZ)/dist
@@ -323,8 +319,8 @@ do
             missile.vy = missile.speed*sin(currentAngle)
             missile.currentAngle = currentAngle
         end
-        missile.x = missile.x + missile.vx
-        missile.y = missile.y + missile.vy
+        missile.x = missile.x + missile.vx*INTERVAL
+        missile.y = missile.y + missile.vy*INTERVAL
         BlzSetSpecialEffectPosition(missile.visual, missile.x, missile.y, GetTerrainZ(missile.x, missile.y) + missile.visualZ)
     end
 

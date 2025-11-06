@@ -4,6 +4,9 @@
     "noEmit": true,
     "allowJs": true,
     "strict": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "libReplacement": true,
     "sourceMap": false,
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": false,
@@ -13,7 +16,11 @@
     "noErrorTruncation": true,
     "removeComments": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@luacode/*": ["./lua/*"],
+      "@mods/*": ["./modules/*"],
+      "@shared/*": ["./shared/*"],
+      "@game/*": ["./game/*"]
     },
     "baseUrl": "./",
     "target": "ESNext",

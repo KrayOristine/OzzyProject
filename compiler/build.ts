@@ -5,8 +5,9 @@ import { getFilesInDirectory, loadProjectConfig, logger, toArrayBuffer } from ".
 import { compileMap } from "@/compiler";
 
 function main() {
-  const config = loadProjectConfig();
-  const minify = process.argv[2] === "-minify" || config.compilerOptions.scripts.minify;
+
+    const config = loadProjectConfig();
+    const minify = process.argv[2] === "-minify" || config.compilerOptions.scripts.minify;
 
   const result = compileMap(config, minify);
   result.catch(()=>{
@@ -66,4 +67,8 @@ export function createMapFromDir(output: string, dir: string) {
   logger.info("Finished!");
 }
 
-main();
+try {
+  main();
+} catch(e){
+  logger.error(`Failed to build map: ${e}`)
+}

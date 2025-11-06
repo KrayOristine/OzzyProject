@@ -1,7 +1,6 @@
 // these helper should be global
-
 declare type Act<TResult = void> = () => TResult;
-declare type Fn<TArgs extends any[],TResult = void> = (...args: TArgs) => TResult;
+declare type Fn<TArgs extends readonly any[],TResult = void> = (...args: TArgs) => TResult;
 declare type ValueOf<T> = T[keyof T];
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N

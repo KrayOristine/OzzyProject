@@ -29,19 +29,19 @@
               "description": "Minify result map script?",
               "default": "false"
             },
-            "inlineConstant": {
+            "optimize": {
               "type": "boolean",
-              "description": "Inline all constant value if possible",
+              "description": "Use optimization during script generation",
               "default": "false"
             },
-            "propagateMath": {
-              "type": "boolean",
-              "description": "Pre-process simple math equation and inline it if possible",
-              "default": "false"
+            "optimizeLevel": {
+              "type": "number",
+              "description": "1-3, for lite - normal - agressive",
+              "default": "1"
             }
           }
         },
-        "building": {
+        "mpq": {
           "type": "object",
           "description": "Options for map binary building",
           "properties":{

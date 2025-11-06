@@ -12,7 +12,6 @@
     - no-inline (default)
     - normal: inline only when certain condition met
     - agressive: inline when possible (will harm performance when abused)
-    - force: doesnt exist and doesnt do anything
   - ```/* @tsl.template = `X` */``` (X must be a valid lua code)
     - When a field method or function specified with this got invoked,
      it will be replaced by X

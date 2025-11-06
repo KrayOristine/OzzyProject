@@ -9,42 +9,62 @@ export const enum IdentifierType {
   bonus = "bonus",
   total = "total",
   current = "current",
-  custom = "custom.",
+  custom = "custom",
 }
 
+/** @noSelf */
 interface LiveTooltip {
-  identifier: LuaMap<string, number>; // must map to stats number
-  identifierKind: LuaMap<string, IdentifierType>; // must map to it type
-  tooltipCache: LuaMap<number, string>; // number = ability id
-  extendedTooltipCache: LuaMap<number, string>; // number = ability id
-  updateTarget: LuaMap<unit, number[]>; // number = ability id
-  updateList: unit[];
-  active: boolean;
-
   addList: (target: unit, abilityList: number[], prefetch: boolean) => void;
   addSingle: (target: unit, ability: number, prefetch: boolean) => void;
   removeSingle: (from: unit, ability: number) => void;
   removeList: (from: unit, abilityList: number[]) => void;
   removeAll: (from: unit) => void;
-  update: (this: void) => boolean;
+  clearCache: () => void;
+  init: ()=>void;
+  update: () => boolean;
+}
+
+
+const _identifier = new LuaMap<string,number>();
+const _identifierKind = new LuaMap<string,number>();
+let _tooltipCache = new LuaMap<number,string>();
+let _extendedTooltipCache = new LuaMap<number,string>();
+const _updateTarget = new LuaMap<unit,number[]>();
+const _updateList: unit[] = [];
+let _active = false;
+let _current: unit;
+
+const converter = setmetatable({}, {
+  __index: _identifier,
+  __newindex: function(this: object, k: any, v: any){}
+});
+
+const _pgsub = function(...match: string[]){
+
+
+}
+
+const _processFormula = function(str: string, u: unit){
+
+  _current = u;
+  const r = string.gsub(str, "%$(.-)%$", _pgsub)
+
+  return str;
 }
 
 const liveTooltip: LiveTooltip = {
-  identifier: new LuaMap(),
-  identifierKind: new LuaMap(),
-  tooltipCache: new LuaMap(),
-  extendedTooltipCache: new LuaMap(),
-  updateTarget: new LuaMap(),
-  updateList: [],
-  active: false,
+
+  init: function(){
+
+  },
   addList: function (target: unit, abilityList: number[], prefetch: boolean = true): void {
-    if (!this.active) {
+    if (!_active) {
       periodic.add(this.update, 1);
-      this.active = true;
+      _active = true;
     }
 
-    if (this.updateTarget.has(target)) {
-      const v = this.updateTarget.get(target)!;
+    if (_updateTarget.has(target)) {
+      const v = _updateTarget.get(target)!;
       const al = abilityList.length;
 
       let vl = v.length;
@@ -53,8 +73,8 @@ const liveTooltip: LiveTooltip = {
           const id = abilityList[i - 1];
           vl++;
           v[vl - 1] = id;
-          this.tooltipCache.set(id, BlzGetAbilityTooltip(id, 0)!);
-          this.extendedTooltipCache.set(id, BlzGetAbilityExtendedTooltip(id, 0)!);
+          _tooltipCache.set(id, BlzGetAbilityTooltip(id, 0)!);
+          _extendedTooltipCache.set(id, BlzGetAbilityExtendedTooltip(id, 0)!);
         }
       } else {
         for (const i of $range(1, al)) {
@@ -66,7 +86,7 @@ const liveTooltip: LiveTooltip = {
       return;
     }
 
-    const uls = this.updateList;
+    const uls = _updateList;
     uls[uls.length] = target;
     let ti = 0;
     const t = [];
@@ -77,8 +97,8 @@ const liveTooltip: LiveTooltip = {
         ti++;
         const id = abilityList[i - 1];
         t[ti - 1] = id;
-        this.tooltipCache.set(id, BlzGetAbilityTooltip(id, 0)!);
-        this.extendedTooltipCache.set(id, BlzGetAbilityExtendedTooltip(id, 0)!);
+        _tooltipCache.set(id, BlzGetAbilityTooltip(id, 0)!);
+        _extendedTooltipCache.set(id, BlzGetAbilityExtendedTooltip(id, 0)!);
       }
     } else {
       for (const i of $range(1, al)) {
@@ -87,39 +107,39 @@ const liveTooltip: LiveTooltip = {
       }
     }
 
-    this.updateTarget.set(target, t);
+    _updateTarget.set(target, t);
   },
   addSingle: function (target: unit, ability: number, prefetch: boolean = true): void {
-    if (!this.active) {
+    if (!_active) {
       periodic.add(this.update, 1);
-      this.active = true;
+      _active = true;
     }
 
-    if (this.updateTarget.has(target)) {
-      const v = this.updateTarget.get(target)!;
+    if (_updateTarget.has(target)) {
+      const v = _updateTarget.get(target)!;
       v[v.length] = ability;
 
       if (prefetch) {
-        this.tooltipCache.set(ability, BlzGetAbilityTooltip(ability, 0)!);
-        this.extendedTooltipCache.set(ability, BlzGetAbilityExtendedTooltip(ability, 0)!);
+        _tooltipCache.set(ability, BlzGetAbilityTooltip(ability, 0)!);
+        _extendedTooltipCache.set(ability, BlzGetAbilityExtendedTooltip(ability, 0)!);
       }
 
       return;
     }
 
-    const uls = this.updateList;
+    const uls = _updateList;
     uls[uls.length] = target;
-    this.updateTarget.set(target, [ability]);
+    _updateTarget.set(target, [ability]);
 
     if (prefetch) {
-      this.tooltipCache.set(ability, BlzGetAbilityTooltip(ability, 0)!);
-      this.extendedTooltipCache.set(ability, BlzGetAbilityExtendedTooltip(ability, 0)!);
+      _tooltipCache.set(ability, BlzGetAbilityTooltip(ability, 0)!);
+      _extendedTooltipCache.set(ability, BlzGetAbilityExtendedTooltip(ability, 0)!);
     }
   },
   removeSingle: function (from: unit, ability: number): void {
-    if (!this.updateTarget.has(from)) return;
+    if (!_updateTarget.has(from)) return;
 
-    const t = this.updateTarget.get(from)!;
+    const t = _updateTarget.get(from)!;
     const tl = t.length;
     for (const i of $range(1, tl)) {
       if (t[i - 1] == ability) {
@@ -129,11 +149,8 @@ const liveTooltip: LiveTooltip = {
       }
     }
 
-    this.tooltipCache.delete(ability);
-    this.extendedTooltipCache.delete(ability);
-
     if (tl - 1 == 0) {
-      const u = this.updateList;
+      const u = _updateList;
       const ul = u.length;
 
       for (const i of $range(1, ul)) {
@@ -144,18 +161,18 @@ const liveTooltip: LiveTooltip = {
         }
       }
 
-      this.updateTarget.delete(from);
+      _updateTarget.delete(from);
     }
   },
   removeList: function (from, abilityList) {
-    if (!this.updateTarget.has(from)) return;
+    if (!_updateTarget.has(from)) return;
 
-    const a = this.updateTarget.get(from)!;
+    const a = _updateTarget.get(from)!;
     let al = a.length;
     const rl = abilityList.length;
     for (const i of $range(1, rl)) {
       const id = abilityList[i];
-      if (!this.tooltipCache.has(id)) continue;
+      if (!_tooltipCache.has(id)) continue;
       for (const i of $range(1, al)) {
         if (a[i - 1] == id) {
           a[i - 1] = a[al - 1];
@@ -166,13 +183,8 @@ const liveTooltip: LiveTooltip = {
         }
       }
     }
-    for (const i of $range(1, al)) {
-      const id = a[i - 1];
-      this.tooltipCache.delete(id);
-      this.extendedTooltipCache.delete(id);
-    }
 
-    const u = this.updateList;
+    const u = _updateList;
     const ul = u.length;
 
     for (const i of $range(1, ul)) {
@@ -184,18 +196,11 @@ const liveTooltip: LiveTooltip = {
     }
   },
   removeAll: function (from: unit) {
-    if (!this.updateTarget.has(from)) return;
+    if (!_updateTarget.has(from)) return;
 
-    const a = this.updateTarget.get(from)!;
-    this.updateTarget.delete(from);
-    const al = a.length;
-    for (const i of $range(1, al)) {
-      const id = a[i - 1];
-      this.tooltipCache.delete(id);
-      this.extendedTooltipCache.delete(id);
-    }
+    _updateTarget.delete(from);
 
-    const u = this.updateList;
+    const u = _updateList;
     const ul = u.length;
 
     for (const i of $range(1, ul)) {
@@ -206,7 +211,38 @@ const liveTooltip: LiveTooltip = {
       }
     }
   },
-  update: function (this: void): boolean {
+  clearCache: function(){
+    _tooltipCache = new LuaMap();
+    _extendedTooltipCache = new LuaMap();
+  },
+  update: function (): boolean {
+    const up = _updateList;
+    const upl = _updateList.length;
+    const processDynamic = _processFormula;
+    for (const i of $range(1, upl)){
+      const u = up[i-1];
+      const arr = _updateTarget.get(u)!;
+      const arrl = arr.length;
+      for (const i of $range(1, arrl)){
+        const abi = arr[i-1];
+        let cacheA = _tooltipCache.get(abi);
+        let cacheB = _extendedTooltipCache.get(abi);
+
+        if (cacheA == null){
+          cacheA = BlzGetAbilityTooltip(abi, 0)!;
+          _tooltipCache.set(abi, cacheA);
+        }
+        if (cacheB == null){
+          cacheB = BlzGetAbilityTooltip(abi, 0)!;
+          _tooltipCache.set(abi, cacheB);
+        }
+
+        const repA = processDynamic(cacheA, u);
+        const repB = processDynamic(cacheB, u);
+
+      }
+    }
+
     return false;
   },
 };

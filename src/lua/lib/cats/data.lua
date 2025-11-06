@@ -43,7 +43,7 @@ do
 
         --The maximum speed that a gizmo can reasonably achieve to determine the frequency with which collision checks must be performed. Can be overwritten with the
         --.maxSpeed field in a gizmo's class table.
-        ,DEFAULT_GIZMO_MAX_SPEED                = 2000      ---@constant number
+        ,DEFAULT_GIZMO_MAX_SPEED                = 2500      ---@constant number
 
         --Sets the vertical bounds for the kill trigger in CAT_OutOfBoundsCheck.
         ,GIZMO_MAXIMUM_Z                        = 3000      ---@constant number

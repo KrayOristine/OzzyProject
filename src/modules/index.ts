@@ -7,7 +7,7 @@ import {File} from './fileIO';
 
 
 export function module_init(){
-  s.init();
+  s.gae();
   InitMouseTracker();
 
 }

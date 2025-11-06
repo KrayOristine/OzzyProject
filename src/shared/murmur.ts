@@ -20,7 +20,8 @@ const _mmTb = new LuaTable();
  */
 export function Hash_MM2(data: string, seed: number): number {
 	if (_mmTb.get(data+seed) != null) return _mmTb.get(data+seed);
-	let str = u.to_byte_array(data),
+	const str = u.to_byte_array(data);
+  let
 		l = str.length,
 		h = seed ^ l,
 		i = 0,
@@ -72,11 +73,11 @@ export function Hash_MM2(data: string, seed: number): number {
 export function HashMM3(data: string, seed: number): number {
 	if (_mmTb.get(data+seed) != null) return _mmTb.get(data+seed);
 
-	let key = u.to_byte_array(data);
-	let remainder: number, bytes: number, h1: number, h1b: number, k1: number, i: number;
+	const key = u.to_byte_array(data);
+  let h1: number, h1b: number, k1: number, i: number;
 
-	remainder = key.length & 3; // key.length % 4
-	bytes = key.length - remainder;
+	const remainder = key.length & 3; // key.length % 4
+	const bytes = key.length - remainder;
 	h1 = seed;
 	i = 0;
 

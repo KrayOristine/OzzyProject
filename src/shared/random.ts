@@ -18,6 +18,7 @@ class PRandom {
   private base: number[] = [];
   private entropy = false;
 
+
   private constructor() {}
 
   static create(seed: string, entropy: boolean) {
@@ -44,11 +45,11 @@ class PRandom {
   }
 
   private init(key: number[], entropy: boolean) {
-    let t,
-      keylen = key.length;
+    let t;
+    const keylen = key.length;
     let i = 0,
       j = 0;
-    let s = this.S;
+    const s = this.S;
     this.base = key.slice();
     this.entropy = entropy;
     // The empty key [] is treated as [0].
@@ -80,8 +81,8 @@ class PRandom {
     let t,
       r = 0;
     let i = this.i,
-      j = this.j,
-      s = this.S;
+      j = this.j;
+    const s = this.S;
 
     while (count--) {
       i = Inliner.mask & (i+1);
@@ -98,7 +99,7 @@ class PRandom {
   }
 
   private static mixkey(seed: number[], key: number[]) {
-    let strSeed = seed;
+    const strSeed = seed;
     let smear: number = 0,
       j = 0;
     while (j < strSeed.length) {
@@ -161,11 +162,11 @@ class PRandom {
     // remixing rng while not using entropy is useless
     if (!this.entropy) return;
     const base = this.base;
-    let t,
-    keylen = base.length;
+    let t;
+    const keylen = base.length;
     let i = 0,
       j = 0;
-    let s = this.S;
+    const s = this.S;
     PRandom.mixkey(PRandom.globalEntropy, base);
 
     // Set up S using the standard key scheduling algorithm.

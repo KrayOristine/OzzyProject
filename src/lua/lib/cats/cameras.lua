@@ -14,7 +14,7 @@ do
     =============================================================================================================================================================
 
     This template creates an actor for each player's camera, which can be used for visibility detection. The camera gets the identifier "camera".
-    
+
     The camera actor is fully asynchronous and must not engage in any interactions that require synchronicity (see under Tutorial & Documentation -> Advanced ->
     Asynchronous Code).
 
@@ -61,24 +61,6 @@ do
             ALICE_SetFlag(camera, "radius", newCameraRadius)
         end
     end
-
-    ---@class Camera
-    local Camera = {
-        eyeX = nil,
-        eyeY = nil,
-        eyeZ = nil,
-        angleOfAttack = nil,
-        rotation = nil,
-        --ALICE
-        x = nil,
-        y = nil,
-        z = nil,
-        identifier = nil,
-        interactions = nil,
-        cellCheckInterval = nil,
-    }
-
-    Camera.__index = Camera
 
     OnInit.final("CAT_Camera", function()
         Require "ALICE"

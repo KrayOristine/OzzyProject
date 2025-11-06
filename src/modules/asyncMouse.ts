@@ -90,7 +90,7 @@ const enum Inliner {
   // These two should always be integer powers of 2.
   // Changing them will make the stabilization stronger/weaker, and the coords update lag bigger/smaller.
   trackerBuffer = 32,
-  trackerBufferPeriod = 32,
+  //trackerBufferPeriod = 32,
 
   ts3 = baseSize * 3,
   ts33 = baseSize * 3 * 3,
@@ -99,13 +99,13 @@ const enum Inliner {
   ts33733 = baseSize * 3 * 3 * 7 * 3 * 3,
 }
 
-let trackerTilesGaps = [3, 3, 3, 1, 1, 1];
-let trackerTilesClms = [9, 9, 7, 3, 3, 3];
-let trackerTilesSizes = [Inliner.baseSize, Inliner.ts3, Inliner.ts33, Inliner.ts337, Inliner.ts3373, Inliner.ts33733];
+const trackerTilesGaps = [3, 3, 3, 1, 1, 1];
+const trackerTilesClms = [9, 9, 7, 3, 3, 3];
+const trackerTilesSizes = [Inliner.baseSize, Inliner.ts3, Inliner.ts33, Inliner.ts337, Inliner.ts3373, Inliner.ts33733];
 
 // These are the arrays for the frames used in the lattice. It uses SIMPLEFRAMES, in fact.
-let trackerTilesButtons: framehandle[] = [];
-let trackerTilesTooltips: framehandle[] = [];
+const trackerTilesButtons: framehandle[] = [];
+const trackerTilesTooltips: framehandle[] = [];
 let trackerTilesN = 0;
 
 // These two are for internal use of the Tracker only.
@@ -115,8 +115,8 @@ let trackerRawY = 0.0;
 
 
 let curTrackerBufferInd = -1;
-let trackerXBuffer: number[] = [];
-let trackerYBuffer: number[] = [];
+const trackerXBuffer: number[] = [];
+const trackerYBuffer: number[] = [];
 
 let trackerFlickerFrame = 0;
 let screenWid = 0;
@@ -149,7 +149,7 @@ const AvgMovingBuffer = (arr: number[], fromInd: number) => {
   // This makes more recent values in the buffer have more weight.
   let sum = 0.0;
   let divSum = 0.0;
-  let arrLen = arr.length;
+  const arrLen = arr.length;
   let factor = 1.0;
   for (let i = 0; i < arrLen; i++) {
     factor = (arrLen - i + fromInd - 1) % (arrLen + 1);
@@ -340,7 +340,7 @@ const UpdateTracker = () => {
 
 // Creates a tile for the tracker.
 const CreateTrackerButton = (size: number) => {
-  let button = BlzCreateSimpleFrame("Tile", BlzGetOriginFrame(ORIGIN_FRAME_SIMPLE_UI_PARENT, 0)!, 0)!;
+  const button = BlzCreateSimpleFrame("Tile", BlzGetOriginFrame(ORIGIN_FRAME_SIMPLE_UI_PARENT, 0)!, 0)!;
 
   // Important for the tracker to stay above buttons and the top UI bar.
   BlzFrameSetLevel(button, 5);
@@ -351,7 +351,7 @@ const CreateTrackerButton = (size: number) => {
 
 // Tooltip for the hit detection.
 const CreateTrackerTooltip = (button: framehandle) => {
-  let tooltip = BlzCreateFrameByType("SIMPLEFRAME", "", button, "", 0)!;
+  const tooltip = BlzCreateFrameByType("SIMPLEFRAME", "", button, "", 0)!;
 
   BlzFrameSetTooltip(button, tooltip);
   BlzFrameSetEnable(tooltip, false);
@@ -436,7 +436,7 @@ const TimerTick = () => {
     screenAspectRatio = screenWid / screenHei;
   }
 
-  if ((globalFrame & (Inliner.trackerBufferPeriod - 1)) == 1) {
+  if ((globalFrame & (Inliner.trackerBuffer - 1)) == 1) {
     curTrackerBufferInd = (curTrackerBufferInd + 1) & (Inliner.trackerBuffer - 1);
 
     trackerXBuffer[curTrackerBufferInd + 1] = trackerRawX;

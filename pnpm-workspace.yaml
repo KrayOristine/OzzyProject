@@ -2,8 +2,12 @@
 auto-install-peers: true
 node-linker: hoisted
 
+minimumReleaseAge: 10080
+shellEmulator: true
+
 # node
 nodeVersion: 23.10.0
+executionEnv:
+  nodeVersion: 23.10.0
 nodeOptions: >
-  NODE_COMPILE_CACHE = ".node-cache"
-
+  ${NODE_OPTIONS:- }

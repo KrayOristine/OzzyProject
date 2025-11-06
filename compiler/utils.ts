@@ -8,14 +8,17 @@ const { combine, timestamp, printf, colorize } = format;
 
 export interface IProjectConfig {
   compilerOptions: {
-    baseUrl: string;
+    baseDir: string;
     outDir: string;
     mapName: string;
     scripts: {
-      constantFolding: boolean;
       minify: boolean;
       optimize: boolean;
+      optimizeLevel: number;
     };
+    mpq: {
+      cache: boolean
+    }
   };
   game: {
     executable: string;
@@ -60,22 +63,24 @@ const cache = new Map<string, any>();
 export function loadProjectConfig(): IProjectConfig {
   if (cache.has("projectConfig")) return cache.get("projectConfig");
   try {
-    cache.set("projectConfig", JSON.parse(fs.readFileSync("config.json").toString()));
+    cache.set("projectConfig", JSON.parse(fs.readFileSync("compile-config.json").toString()));
 
     return cache.get("projectConfig");
   } catch (e) {
-    logger.error(e);
+    logger.error(`Failed to parse/read compile-config.json: ${e}`);
     return {
       compilerOptions: {
-        baseUrl: "",
+        baseDir: "",
         outDir: "",
         mapName: "",
-
         scripts: {
-          constantFolding: false,
           minify: false,
           optimize: false,
+          optimizeLevel: 0,
         },
+        mpq: {
+          cache: false,
+        }
       },
 
       game: {
@@ -151,17 +156,13 @@ export function updateTSConfig(mapFolder: string) {
   const tsconfig = loadTSConfig();
   const plugin = tsconfig.compilerOptions.plugins;
 
-  plugin[1].enable = loadProjectConfig().compilerOptions.scripts.constantFolding;
+  plugin[1].enable = loadProjectConfig().compilerOptions.scripts.optimizeLevel > 1;
   plugin[1].cfPrecision = 0;
   plugin[0].mapDir = path.resolve("maps", mapFolder).replace(/\\/g, "/");
   plugin[0].entryFile = path.resolve(tsconfig.tstl.luaBundleEntry).replace(/\\/g, "/");
   plugin[0].outputDir = path.resolve("dist", mapFolder).replace(/\\/g, "/");
 
   writeFileSync("tsconfig.json", JSON.stringify(tsconfig, undefined, 2));
-}
-
-export function GetWorkerPath(path: string, fn: string){
-  return new URL(path, require('url').pathToFileURL(fn).href);
 }
 
 export function updateProjectConfig() {
@@ -175,8 +176,7 @@ export function updateProjectConfig() {
 export function getMapName() {
   if (cache.has("mapName")) return cache.get("mapName");
 
-  let split = loadProjectConfig().compilerOptions.baseUrl.split("/");
-  cache.set("mapName", split.at(-1));
+  cache.set("mapName", loadProjectConfig().compilerOptions.mapName);
 
   return cache.get("mapName");
 }
@@ -197,7 +197,13 @@ export const logger = createLogger({
     }),
     new transports.File({
       filename: "project.log",
+      level: 'info,error,debug,crit,alert',
       format: combine(timestamp(), printf(loggerFormatFunc)),
+      maxFiles: 1,
+      lazy: true,
+      options:{
+        flags: 'w+'
+      }
     }),
   ],
 });

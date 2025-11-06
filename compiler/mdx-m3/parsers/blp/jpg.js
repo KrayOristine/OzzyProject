@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 
 /* Copyright 2017 Mozilla Foundation
  *

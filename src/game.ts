@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 // Copyright (C) 2025  Kray Oristine
 
 // This program is free software: you can redistribute it and/or modify
@@ -16,10 +14,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // default first init
-import h from "shared/hooks";
 import u from "@/shared/util";
 import { InitCompressor } from "@/lua/lib/deflate";
-import s from "@/modules/sync";
+import {module_init} from "@/modules";
 
 // prepare modules import
 
@@ -29,23 +26,30 @@ import s from "@/modules/sync";
 
 
 // These below are just for specifying version
-const BUILD_DATE = compiletime(() => new Date().toUTCString());
-const TS_VERSION = compiletime(() => require("typescript").version);
-const TSTL_VERSION = compiletime(() => require("typescript-to-lua").version);
+const BUILD_DATE = compiletime(() => new Date().toISOString());
+const MAP_VERSION = compiletime(function() {
+  const pack = require('package.json');
+
+  if (pack != null && pack.version != null){
+    return pack.version;
+  }
+
+  return "unknown"
+});
 
 function tsMain() {
   // init lua
   InitCompressor();
+  u.util_init();
 
   // init ts
-  u.util_init();
-  s.init();
+  module_init();
 
-  const str = [];
-  str[1-1] =
+  const x = ALICE_Create;
+
+  print(x);
   print(`Build Date: ${BUILD_DATE}`);
-  print(`Typescript Version: ${TS_VERSION}`);
-  print(`TSTL Version: ${TSTL_VERSION}`);
+  print(`Build Version: ${MAP_VERSION}`);
 }
 
-h.final(tsMain);
+OnInit.final("tsMain", tsMain);

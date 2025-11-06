@@ -1,6 +1,3 @@
-import fs from "node:fs/promises";
-import { parentPort } from "node:worker_threads";
-
 function fmtStr(arr: RegExpExecArray) {
   const r = [];
   for (let i = 1; i < arr.length; i++) {
@@ -31,12 +28,16 @@ function checkValid(which: string, val: string) {
   return str == which;
 }
 
-async function capture(source: Promise<string>, regex: RegExp, funcBuffer: Uint8Array, varBuffer: Uint8Array) {
-  const sourceData = await source;
+let tex: InstanceType<typeof TextEncoder> | undefined;
+
+function pushBuffer(buffer: Uint8Array, value: string){
+  if (!tex) tex = new TextEncoder();
+}
+
+function capture(source: string, regex: RegExp, funcBuffer: Uint8Array, varBuffer: Uint8Array) {
+  const sourceData = source;
   let m = regex.exec(sourceData);
   if (m === null) return;
-
-  const tex = new TextEncoder();
 
   while (m !== null) {
     if (m.index === regex.lastIndex) {
@@ -56,40 +57,41 @@ async function capture(source: Promise<string>, regex: RegExp, funcBuffer: Uint8
     //   }/${isVar ? 1 : 0} - Array of V: [${fmtStr(m)}]`
     // );
 
-    if (isFunc || isNative) {
-      tex.encodeInto(name, funcBuffer);
-      tex.encodeInto(',', funcBuffer)
-    } else if (isVar) {
-      tex.encodeInto(name, varBuffer);
-      tex.encodeInto(',', varBuffer);
+    let target;
+    if (isFunc || isNative){
+      target = funcBuffer;
+    } else if (isVar){
+      target = varBuffer;
+    }
+
+    if (target !== undefined){
+      pushBuffer(target, name);
+      pushBuffer(target, '|');
     }
 
     m = regex.exec(sourceData);
   }
 }
 
-parentPort?.on("message", async (path: string) => {
-  const f = fs.readFile(path, { encoding: "utf-8" });
-
+/**
+ *
+ * @param target The script contents
+ * @returns 0 - function buffer, 1 - variable buffer
+ */
+export function processPreserve(target: string): [string[], string[]] {
   const regexB =
     /^([\t ]+)?((constant )|(function )|(native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))([ \t]+)?((native )|((string|integer|real|boolean|agent|event|player|widget|unit|destructable|item|ability|buff|force|group|trigger|triggercondition|triggeraction|timer|location|region|rect|boolexpr|sound|conditionfunc|filterfunc|unitpool|itempool|race|alliancetype|racepreference|gamestate|igamestate|fgamestate|playerstate|playerscore|playergameresult|unitstate|aidifficulty|eventid|gameevent|playerevent|playerunitevent|unitevent|limitop|widgetevent|dialogevent|unittype|gamespeed|gamedifficulty|gametype|mapflag|mapvisibility|mapsetting|mapdensity|mapcontrol|minimapicon|playerslotstate|volumegroup|camerafield|camerasetup|playercolor|placement|startlocprio|raritycontrol|blendmode|texmapflags|effect|effecttype|weathereffect|terraindeformation|fogstate|fogmodifier|dialog|button|quest|questitem|defeatcondition|timerdialog|leaderboard|multiboard|multiboarditem|trackable|gamecache|version|itemtype|texttag|attacktype|damagetype|weapontype|soundtype|lightning|pathingtype|mousebuttontype|animtype|subanimtype|image|ubersplat|hashtable|framehandle|originframetype|framepointtype|textaligntype|frameeventtype|oskeytype|abilityintegerfield|abilityrealfield|abilitybooleanfield|abilitystringfield|abilityintegerlevelfield|abilityreallevelfield|abilitybooleanlevelfield|abilitystringlevelfield|abilityintegerlevelarrayfield|abilityreallevelarrayfield|abilitybooleanlevelarrayfield|abilitystringlevelarrayfield|unitintegerfield|unitrealfield|unitbooleanfield|unitstringfield|unitweaponintegerfield|unitweaponrealfield|unitweaponbooleanfield|unitweaponstringfield|itemintegerfield|itemrealfield|itembooleanfield|itemstringfield|movetype|targetflag|armortype|heroattribute|defensetype|regentype|unitcategory|pathingflag|commandbuttoneffect) (array )?))?([ \t]+)?(\w+)(([ \t]+)(takes|\=)? [, \w\d\t\"\'\(\)]+)([ \t]+)?(\/\/.*)?\n?$/gm;
 
-  const vBuf = new ArrayBuffer();
-  const fBuf = new ArrayBuffer();
-  const viewV = new Uint8Array(vBuf);
-  const viewF = new Uint8Array(fBuf);
-  await capture(f, regexB, viewF, viewV);
+  const vBuf = new Uint8Array();
+  const fBuf = new Uint8Array();
+  capture(target, regexB, fBuf, vBuf);
 
-  const sendF = fBuf.byteLength > 0;
-  const sendV = vBuf.byteLength > 0;
+  const func =  fBuf.toString();
+  const vars = vBuf.toString();
 
-  if (sendF && sendV) parentPort?.postMessage(2);
-  if (sendF || sendV) parentPort?.postMessage(1);
-  else {
-    parentPort?.postMessage(0);
-    return;
-  }
+  // convert to array
+  const funcArr = func.length > 0 ? func.split('|').filter(v => v.trim().length > 0) : [];
+  const varsArr = vars.length > 0 ? vars.split('|').filter(v => v.trim().length > 0) : [];
 
-  if (sendV) parentPort?.postMessage(vBuf);
-  if (sendF) parentPort?.postMessage(fBuf);
-});
+  return [funcArr, varsArr];
+}

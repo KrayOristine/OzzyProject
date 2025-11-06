@@ -67,7 +67,7 @@ do
     end
 
     ===============================================================================================================================================================================
-                                                                        L I S T   O F   F U N C T I O N S             
+                                                                        L I S T   O F   F U N C T I O N S
     ===============================================================================================================================================================================
 
     CAT_Decay                                                   Makes your gizmo get destroyed after X seconds, where X is set through the .lifetime field of your gizmo table.
@@ -328,7 +328,7 @@ do
         gizmo.z = GetTerrainZ(gizmo.x, gizmo.y) + (gizmo.collisionRadius or 0)
     end
 
-    ---Removes all widgets with the specified widgetId and calls the constructorFunc with the parameters func(x, y, z, life, mana, owner, facing). The last three parameters are nil if the widget is not a unit. 
+    ---Removes all widgets with the specified widgetId and calls the constructorFunc with the parameters func(x, y, z, life, mana, owner, facing). The last three parameters are nil if the widget is not a unit.
     ---@param widgetId integer
     ---@param widgetType string
     ---@param constructorFunc function
