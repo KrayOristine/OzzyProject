@@ -1,9 +1,11 @@
-import { getMapName, getPreservedName, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils";
+import { getMapName, IProjectConfig, logger } from "./utils";
 import { xxh3 } from "@node-rs/xxhash";
 import lm from "./luamin/luamin";
-import * as fs from "fs-extra";
-import tstl from "typescript-to-lua";
-import { DiagnosticCategory } from 'typescript';
+import fsa from "fs/promises";
+import fs from "fs";
+import { DiagnosticCategory } from "typescript";
+import { processPreserve } from "./processPreserve";
+import { mapTranspile } from './transpiler';
 
 interface MapFileCache {
   // filePath: "hash"
@@ -14,9 +16,8 @@ const enum inline {
   seedB = 156987324598743,
   seedC = 378241596384920,
   seedD = 903476123857294,
-  seedE = 245098765432189
+  seedE = 245098765432189,
 }
-
 
 export function processScriptIncludes(contents: string) {
   const regex = /include\(([^)]+)\)/gm;
@@ -24,7 +25,12 @@ export function processScriptIncludes(contents: string) {
   while ((matches = regex.exec(contents)) !== null) {
     const filename = matches[1].replace(/"/g, "").replace(/'/g, "");
     const fileContents = fs.readFileSync(filename);
-    contents = contents.substring(0, regex.lastIndex - matches[0].length) + "\n" + fileContents + "\n" + contents.substring(regex.lastIndex);
+    contents =
+      contents.substring(0, regex.lastIndex - matches[0].length) +
+      "\n" +
+      fileContents +
+      "\n" +
+      contents.substring(regex.lastIndex);
   }
   return contents;
 }
@@ -35,59 +41,66 @@ export function cutMapFile(filePath: string) {
   return split.slice(split.indexOf(getMapName()) + 1).join("/");
 }
 
-async function copyAndCache(source: string, target: string, cache: string, ignoreCache: boolean = false) {
+function testCache(hash: string, which: string, cache: MapFileCache, bypassCache = false): "normal" | "hash" | "removed" {
+  if (cache[which] === hash) return "normal";
+  if (cache[which] !== hash) return "hash";
+  if (cache[which] === undefined || cache[which] === null) return "removed";
+
+  // you should not be able to reach this
+  return "normal";
+}
+
+async function copyAndCache(copySource: string, copyTarget: string, cache: string, ignoreCache: boolean = false) {
   let tryNum = 0;
-  const cacheFile = fs.readFileSync(cache, { encoding: "utf8", flag: "a+" });
-  const cached: MapFileCache = JSON.parse(cacheFile === "" ? "{}" : cacheFile);
-  const diff: Record<string, "hash" | "removed"> = {};
-  while (true) {
-    fs.copy(source, target, {
+  let cacheFile: string = "{}";
+  if (fs.existsSync(cache)){
+    cacheFile = fs.readFileSync(cache, { encoding: "utf-8", flag: "r" });
+  }
+
+  logger.info(`Copying start: source - ${copySource} | target - ${copyTarget}`);
+  const cached: MapFileCache = JSON.parse(cacheFile);
+  let continueToCopy = true;
+  while (continueToCopy) {
+    await fsa.cp(copySource, copyTarget, {
+      recursive: true,
+      force: true,
       filter: async function (source, _) {
-        if (fs.statSync(source).isDirectory()) return Promise.resolve<boolean>(true);
+        if (fs.statSync(source).isDirectory()) return true;
 
-        const mapFile = cutMapFile(source);
-        return new Promise<boolean>((resolve, reject) => {
-          fs.readFile(source, { encoding: "utf8" })
-            .then((v) => {
-              const mapHash = xxh3.xxh128(v, BigInt(inline.seedE)).toString(16);
+        try {
+          const file = cutMapFile(source);
+          const content = await fsa.readFile(source, { encoding: "utf8" })
+          const hash = xxh3.xxh128(content, BigInt(inline.seedE)).toString(16);
 
-              if (ignoreCache) {
-                cached[mapFile] = mapHash;
-                diff[mapFile] = cached[mapFile] === undefined ? "removed" : "hash";
+          const r = testCache(hash, file, cached, ignoreCache);
 
-                return resolve(true);
-              }
+          if (r === 'hash') {
+            logger.info(`File changed, copying: ${file}`);
+            cached[file] = hash;
+            return true;
+          };
 
-              if (cached[mapFile] === undefined || cached[mapFile] === null) {
-                cached[mapFile] = mapHash;
-                diff[mapFile] = "removed";
-
-                return resolve(true);
-              }
-
-              if (cached[mapFile] == undefined || cached[mapFile] != mapHash) {
-                cached[mapFile] = mapHash;
-                diff[mapFile] = "hash";
-
-                return resolve(true);
-              }
-
-              return resolve(false);
-            })
-            .catch((e) => {
-              reject(e);
-            });
-        });
+          return false;
+        } catch (e){
+          logger.error(`Failed to copy ${source}, reason: ${e}`)
+          throw e;
+        }
       },
     })
       .then(() => {
-        fs.writeFile(cache, JSON.stringify(cached, undefined, ""));
+        logger.info(`Finished copying to ${copyTarget}`);
+        fs.writeFileSync(cache, JSON.stringify(cached, undefined, ""));
+        continueToCopy = false;
       })
       .catch((e) => {
         logger.error("Error while copying: ", e);
         tryNum++;
-        if (tryNum >= 3) return;
-        logger.warn("Trying again...");
+        if (tryNum >= 3){
+          logger.error("Failed to copy files after 3 retry, aborting...")
+          continueToCopy = false;
+          return;
+        }
+        logger.info("Trying again...");
       });
   }
 }
@@ -97,44 +110,49 @@ export async function mapBuildCache(mapUrl: string, mapDest: string) {
   return copyAndCache(mapUrl, mapDest + getMapName(), cachePath);
 }
 
+
+
 /**
  *
  */
-export async function compileMap(config: IProjectConfig) {
-  if (!config.compilerOptions.baseUrl || config.compilerOptions.baseUrl === "") {
-    logger.error(`[config.json]: baseUrl is empty!`);
+export async function compileMap(config: IProjectConfig, minify: boolean) {
+  if (!config.compilerOptions.baseDir || config.compilerOptions.baseDir === "") {
+    logger.error(`[config.json]: baseDir is empty!`);
     return false;
   }
 
   const tsLua = `${config.compilerOptions.outDir}/dist/tstl_output.lua`;
 
+  logger.info(`Cleaning up old build...`);
   if (fs.existsSync(tsLua)) {
     fs.unlinkSync(tsLua);
   }
 
-  logger.info(`Building "${config.compilerOptions.baseUrl}"...`);
-  mapBuildCache(config.compilerOptions.baseUrl, `${config.compilerOptions.outDir}/dist/`);
-
-  logger.info("Updating configuration...");
-  updateTSConfig(config.compilerOptions.baseUrl);
-  updateProjectConfig();
+  logger.info(`Building "${config.compilerOptions.baseDir}"...`);
+  await mapBuildCache(config.compilerOptions.baseDir, `${config.compilerOptions.outDir}/dist/`);
 
   logger.info("Transpiling code...");
+  let r = mapTranspile(config.compilerOptions.codeDir);
+  try {
+    const emit = await r;
 
-  let r = tstl.transpileProject('../src/tsconfig.json');
+    if (emit.diagnostics.length > 0) {
+      var hasErr = false;
+      for (let i = 0; i < emit.diagnostics.length; i++) {
+        let diag = emit.diagnostics[i];
+        if (diag.category === DiagnosticCategory.Error) {
+          hasErr = true;
+          logger.info(JSON.stringify(diag));
+        }
+      }
 
-  if (r.diagnostics.length > 0){
-    var hasErr = false;
-    for (let i = 0; i < r.diagnostics.length; i++){
-      let diag = r.diagnostics[i];
-      if (diag.category === DiagnosticCategory.Error){
-        if (!hasErr) logger.error("Error during transpilation!");
-        hasErr = true;
-        logger.error(diag.messageText.toString());
+      if (hasErr){
+        throw "Error during transpilation";
       }
     }
-
-    return false;
+  } catch (e){
+    logger.error(e);
+    return;
   }
 
   if (!fs.existsSync(tsLua)) {
@@ -143,7 +161,7 @@ export async function compileMap(config: IProjectConfig) {
   }
 
   // Merge the TSTL output with war3map.lua
-  const mapLua = `./${config.compilerOptions.baseUrl}/war3map.lua`;
+  const mapLua = `./${config.compilerOptions.baseDir}/war3map.lua`;
 
   if (!fs.existsSync(mapLua)) {
     logger.error(`Could not find "${mapLua}"`);
@@ -151,20 +169,31 @@ export async function compileMap(config: IProjectConfig) {
   }
 
   try {
-    const readMap = fs.readFile(mapLua);
-    const readTs = fs.readFile(tsLua);
-    const getPreserve = getPreservedName();
+    const read = [fsa.readFile(mapLua), fsa.readFile(tsLua)];
+    if (minify) {
+      const blizzard = `./compiler/Blizzard.j`;
+      const common = `./compiler/common.j`;
+      read.push(fsa.readFile(blizzard), fsa.readFile(common));
+    }
 
-    const mapL =  await readMap;
-    const tsL = await readTs;
+    await Promise.allSettled(read);
+
+    const mapL = await read[0];
+    const tsL = await read[1];
     const ct = new Uint8Array(mapL.byteLength + tsL.byteLength);
     ct.set(mapL, 0);
     ct.set(tsL, mapL.byteLength);
-
     let contents = processScriptIncludes(ct.toString());
-    const preserved = await getPreserve;
 
-    if (config.compilerOptions.scripts.minify) {
+    if (minify) {
+      const blizzContent = (await read[2]).toString();
+      const commonContent = (await read[3]).toString();
+      const preservedBlizz = processPreserve(blizzContent);
+      const preservedCommon = processPreserve(commonContent);
+      if (globalThis.gc) {
+        globalThis.gc();
+      }
+
       logger.info(`Minifying script...`);
       let minified =
         lm.minify(contents, {
@@ -179,13 +208,14 @@ export async function compileMap(config: IProjectConfig) {
             // warcraft expect these two, so we preserve it to prevent it being minified
             "main",
             "config",
-            ...preserved.native,
-            ...preserved.func
+            ...preservedBlizz[0],
+            ...preservedCommon[0],
           ],
           preservedGlobalVars: [
             // i dont think we need to preserve this - 2/20/2025
             // yes we do - 3/1/2025
-            ...preserved.variable
+            ...preservedBlizz[1],
+            ...preservedCommon[1],
           ],
         }) ?? "";
 

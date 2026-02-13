@@ -13,8 +13,8 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const issueBody = context.payload.issue.body;
-          const issueNumber = context.payload.issue.number;
+          const issueBody = context.issue.body;
+          const issueNumber = context.issue.number;
           const labelsToAdd = [];
           if (issueBody.includes('[x] Bug')) {
             labelsToAdd.push('bug');
@@ -29,7 +29,7 @@ jobs:
             labelsToAdd.push('request credits');
           }
           if (labelsToAdd.length > 0) {
-            await github.issues.addLabels({
+            await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,

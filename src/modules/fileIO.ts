@@ -1,4 +1,3 @@
-
 const enum Inliner{
   raw_prefix =']]i([[',
   raw_suffix = ']])--[[',
@@ -16,10 +15,27 @@ export class File {
 
   private constructor(path: string, data?: string) {
     this.path = path;
-    this.buffer = data ? [data] : [];
+    this.buffer = TableGet();
+    if (data != null) this.buffer[0] = data;
     this.closed = false;
   }
 
+  static read(path: string){
+    if (string.find(path, Inliner.filter)[0]) return '';
+
+    if (string.sub(path, -4, -1) != '.pld'){
+      path = path + '.pld';
+    }
+
+    BlzSetAbilityTooltip(FourCC('ANdc'), Inliner.empty, 0);
+    Preloader(path);
+    const loadStr = BlzGetAbilityTooltip(FourCC('ANdc'), 0);
+    if (loadStr == Inliner.empty || loadStr == undefined){
+      return '';
+    }
+
+    return string.gsub(string.gsub(loadStr, '!%]', ']')[0], '!\\\\', '\\')[0];
+  }
 
   static open(path: string) {
     if (string.find(path, Inliner.filter)[0]){
@@ -38,7 +54,7 @@ export class File {
       }
 
       const f = this.stack.pop()!;
-      f.buffer = [];
+      f.buffer = TableGet();
       f.path = path;
       f.closed = false;
 
@@ -61,7 +77,7 @@ export class File {
     }
 
     const f = this.stack.pop()!;
-    f.buffer = [];
+    f.buffer = TableGet();
     f.path = path;
     f.closed = false;
 
@@ -70,7 +86,7 @@ export class File {
 
   write(data: string){
     if (this.closed) return;
-    this.buffer.push(data);
+    this.buffer.push(string.gsub(string.gsub(data, '%]','!]')[0], '\\','!\\')[0]);
   }
 
 
@@ -83,6 +99,7 @@ export class File {
       path = path + '.pld';
     }
 
+    data = string.gsub(string.gsub(data, '%]','!]')[0], '\\','!\\')[0];
     const cl = data.length;
 
     PreloadGenClear();
@@ -91,8 +108,19 @@ export class File {
 		//Preload('")\nendfunction\n//!beginusercode\nlocal p={};local i=function(s)table.insert(p,s)end--[[');
     Preload('")\n//! beginusercode\ndo;local l=0;local p={};local i=function(s)l=l+1;p[l]=s;end;--[[');
 
-    for (const i of $range(1, cl, Inliner.raw_size)){
-      Preload(Inliner.raw_prefix + string.sub(data, i, i + Inliner.raw_size - 1) + Inliner.raw_suffix);
+    let i = 0;
+    let pos, __,num, str;
+    while(i <= cl){
+      pos = i + Inliner.raw_size - 1;
+      str = string.sub(data, i, pos);
+      num = string.gsub(str, "[\\\n\'\"]", '')[1];
+      pos -= num;
+      while (string.sub(data, pos, pos) == ']' || string.sub(data, pos+1, pos+1) == '\n'){
+        pos--;
+      }
+
+      Preload(Inliner.raw_prefix + string.sub(data, i, pos) + Inliner.raw_suffix);
+      i = pos + 1;
     }
 
     Preload(']]BlzSetAbilityTooltip(' + FourCC('ANdc') + ',table.concat(p),0)\nend\n//!endusercode\nfunction a takes nothing returns nothing\n//');
@@ -110,7 +138,11 @@ export class File {
     const content = this.buffer.join('');
     const cl = content.length;
 
-    if (cleanBuffer) this.buffer = [];
+    if (cleanBuffer) {
+      const temp = this.buffer;
+      this.buffer = TableGet();
+      TableRet(temp);
+    }
 
     File.stack.push(this);
 
@@ -119,9 +151,19 @@ export class File {
 
 		//Preload('")\nendfunction\n//!beginusercode\nlocal p={};local i=function(s)table.insert(p,s)end--[[');
     Preload('")\n//! beginusercode\ndo;local l=0;local p={};local i=function(s)l=l+1;p[l]=s;end;--[[');
+    let i = 0;
+    let pos, __,num, str;
+    while(i <= cl){
+      pos = i + Inliner.raw_size - 1;
+      str = string.sub(content, i, pos);
+      num = string.gsub(str, "[\\\n\'\"]", '')[1];
+      pos -= num;
+      while (string.sub(content, pos, pos) == ']' || string.sub(content, pos+1, pos+1) == '\n'){
+        pos--;
+      }
 
-    for (const i of $range(1, cl, Inliner.raw_size)){
-      Preload(Inliner.raw_prefix + string.sub(content, i, i + Inliner.raw_size - 1) + Inliner.raw_suffix);
+      Preload(Inliner.raw_prefix + string.sub(content, i, pos) + Inliner.raw_suffix);
+      i = pos + 1;
     }
 
     Preload(']]BlzSetAbilityTooltip(' + FourCC('ANdc') + ',table.concat(p),0)\nend\n//!endusercode\nfunction a takes nothing returns nothing\n//');

@@ -1,7 +1,7 @@
 import { Encoder } from './encoder'
 import { Decoder } from './decoder'
 import u from '@/shared/util';
-import { CompressDeflate } from '@/lua/deflate';
+import { CompressDeflate } from '@/lua/lib/deflate';
 import { constant } from '@/constants';
 import { HashMM3 } from '@/shared/murmur';
 import { File } from '@/modules/fileIO';
@@ -27,6 +27,7 @@ class SaveProfile {
   key: string = '';
 
   private constructor(n: string){
+    this.name = n;
 
   }
 

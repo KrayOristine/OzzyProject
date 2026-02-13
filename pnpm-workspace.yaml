@@ -1,0 +1,15 @@
+# package
+auto-install-peers: true
+node-linker: hoisted
+shellEmulator: true
+
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - typescript-to-lua
+
+# node
+nodeVersion: 23.10.0
+executionEnv:
+  nodeVersion: 23.10.0
+nodeOptions: >
+  ${NODE_OPTIONS:- }

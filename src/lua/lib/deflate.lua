@@ -315,7 +315,7 @@ local function CreateWriter()
   local cache = 0
   local cache_bitlen = 0
   local total_bitlen = 0
-  local buffer = {}
+  local buffer = TableGet()
   -- When buffer is big enough, flush into result_buffer to save memory.
   local result_buffer = {}
 
@@ -393,7 +393,8 @@ local function CreateWriter()
     end
 
     local flushed = table_concat(buffer)
-    buffer = {}
+    TableRet(buffer)
+    buffer = TableGet()
     buffer_size = 0
     result_buffer[#result_buffer + 1] = flushed
 

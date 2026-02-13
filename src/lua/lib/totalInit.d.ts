@@ -4,7 +4,12 @@ type TIRequire = {
   /**
    * Using this call will require the given reqName to exists for this to run
    */
-  strict: ReqFunc,
+  strict: ReqFunc;
+  /**
+   * Work like Require.strict, but will run even if reqName does not exist
+   */
+  optional: ReqFunc;
+  optionally: ReqFunc;
   [key: string]: ReqFunc;
 }
 

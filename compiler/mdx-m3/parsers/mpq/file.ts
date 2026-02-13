@@ -43,7 +43,7 @@ export default class MpqFile {
 
   /**
    * Gets this file's data as a Uint8Array.
-   * 
+   *
    * An exception will be thrown if the file needs to be decoded, and decoding fails.
    */
   bytes(): Uint8Array {
@@ -58,16 +58,16 @@ export default class MpqFile {
 
   /**
    * Gets this file's data as an ArrayBuffer.
-   * 
+   *
    * An exception will be thrown if the file needs to be decoded, and decoding fails.
    */
-  arrayBuffer(): ArrayBuffer {
+  arrayBuffer(): ArrayBufferLike {
     return this.bytes().buffer;
   }
 
   /**
    * Gets this file's data as a UTF8 string.
-   * 
+   *
    * An exception will be thrown if the file needs to be decoded, and decoding fails.
    */
   text(): string {
@@ -76,7 +76,7 @@ export default class MpqFile {
 
   /**
    * Changes the buffer of this file.
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   set(buffer: Uint8Array): boolean {
@@ -104,9 +104,9 @@ export default class MpqFile {
 
   /**
    * Deletes this file.
-   * 
+   *
    * Using the file after it was deleted will result in undefined behavior.
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   delete(): boolean {
@@ -134,10 +134,10 @@ export default class MpqFile {
 
   /**
    * Renames this file.
-   * 
+   *
    * Note that this sets the current file's hash's status to being deleted, rather than removing it.
    * This is due to the way the search algorithm works.
-   * 
+   *
    * Does nothing if the archive is in readonly mode.
    */
   rename(newName: string): boolean {

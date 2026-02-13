@@ -46,7 +46,7 @@ do
     You can also set the .onlyTarget field. This will disable collision checks with any unit that isn't set as the .target of the gizmo.
 
     -------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
     To execute code on collision, you need to define an onCollision function, where there are, again, different ones for each object type. The table fields you
     need to set for onCollision functions are:
 

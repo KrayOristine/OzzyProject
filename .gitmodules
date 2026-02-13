@@ -1,0 +1,3 @@
+[submodule "submodules/Patchwork-MapConverter"]
+	path = submodules/Patchwork-MapConverter
+	url = https://github.com/WC3-Patchwork/Patchwork-MapConverter

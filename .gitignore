@@ -98,13 +98,14 @@ typings/
 # Hidden
 maps/
 resources/
+map-data/
 
 # Testing buggy stuff
 test/
 
 
 # config stuff
-config.json
+compile-config.json
 
 
 # action stuff

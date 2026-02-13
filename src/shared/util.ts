@@ -1,5 +1,3 @@
-import hooks from "./hooks";
-
 let zeroLoc: location;
 const sbyte = string.byte;
 const concat = table.concat;
@@ -24,8 +22,8 @@ function ArrContains<T>(arr: T[], data: T): boolean {
   return false;
 }
 
-function GetHeroPrimaryStat(h: unit, includeBonus: boolean = false): number {
-  let i = BlzGetHeroPrimaryStat(h);
+function GetHeroPrimaryStat(h: unit, includeBonus = false): number {
+  const i = BlzGetHeroPrimaryStat(h);
   if (i == 1) return GetHeroStr(h, includeBonus);
   if (i == 3) return GetHeroAgi(h, includeBonus);
   if (i == 2) return GetHeroInt(h, includeBonus);
@@ -52,27 +50,27 @@ function SetUnitZ(u: unit, newZPos: number): void {
 
 // yoinked from Magi Log n' Load (COBSEscape at line i dont know)
 function cobs_escape(s: string) {
-  let char = string.char;
-  let sub = string.sub;
-  let find = string.find;
-  let str0 = char(0);
-  let str255 = char(255);
+  const char = string.char;
+  const sub = string.sub;
+  const find = string.find;
+  const str0 = char(0);
+  const str255 = char(255);
 
-  let l = s.length;
+  const l = s.length;
   let i0 = 1;
-  let r = [];
+  const r = [];
   let ri = 0;
 
   while (i0 <= l) {
-    let i1 = i0 + 253 > l ? l - i0 + 1 : 254;
+    const i1 = i0 + 253 > l ? l - i0 + 1 : 254;
 
-    let sb = sub(s, i0, i0 + i1);
+    const sb = sub(s, i0, i0 + i1);
 
     i0 += i1;
 
     let last = 0;
     let hit: number | null = find(sb, str0, last + 1, true)[0];
-    while (hit) {
+    while (hit != null) {
       ri += 1;
       r[ri - 1] = char(hit - last);
 
@@ -100,18 +98,18 @@ function cobs_escape(s: string) {
 
 // also yoinked from Magi Log n' Load (COBSDescape)
 function cobs_unescape(s: string) {
-  let sub = string.sub;
-  let byte = string.byte;
-  let s0 = char(0);
-  let l = s.length;
+  const sub = string.sub;
+  const byte = string.byte;
+  const s0 = char(0);
+  const l = s.length;
   let i = 1;
-  let r = [];
+  const r = [];
   let ri = 0;
 
   while (i <= l) {
-    let sbl = i + 254 > l ? l - i + 1 : 255;
+    const sbl = i + 254 > l ? l - i + 1 : 255;
 
-    let sb = sub(s, i, i + sbl);
+    const sb = sub(s, i, i + sbl);
 
     i += sbl;
 
@@ -140,16 +138,15 @@ function cobs_unescape(s: string) {
 }
 
 function to_utf8(s: string): string{
-  let char = utf8.char;
+  const char = utf8.char;
 
-  let strlen = s.length;
-  let arr: number[] = sbyte(s, 1, strlen);
+  const strlen = s.length;
+  const arr: number[] = sbyte(s, 1, strlen);
 
-  let r: string[] = [];
+  const r: string[] = [];
 
   for (const i of $range(0,(strlen >>> 1)+(strlen&1)-1)) {
     r[i] = char((arr[i+i] << 8) + (arr[i+i+1] || 255));
-
   }
 
   r[r.length] = char((strlen&1)+1);
@@ -158,7 +155,7 @@ function to_utf8(s: string): string{
 }
 
 function code_utf8(s: string){
-  let r = new LuaTable();
+  const r = new LuaTable();
   let i = 0;
 
   for (const [_, c] of utf8.codes(s)){
@@ -176,7 +173,7 @@ function code_utf8(s: string){
 }
 
 function to_byte_array(s:string, dest?: number[]){
-  const r: number[] = dest || [];
+  const r: number[] = dest ?? [];
   for (const i of $range(1, s.length)){
     r.push(sbyte(s, i));
   }
@@ -196,11 +193,11 @@ function fuck_type<T>(v: any) { return v as unknown as T};
  * @param tolerance In degrees.
  */
 function IsBehindOfTarget(source: unit, target: unit, tolerance: number): boolean {
-  let num1 = AngleBetweenPointsC(source, target);
-  let face = GetUnitFacing(target);
-  let num2 = 0.5 * tolerance;
-  let num3 = 360 - num2;
-  let num4 = Math.abs(num1 - face);
+  const num1 = AngleBetweenPointsC(source, target);
+  const face = GetUnitFacing(target);
+  const num2 = 0.5 * tolerance;
+  const num3 = 360 - num2;
+  const num4 = Math.abs(num1 - face);
   if (num4 > num3) return num4 > num2;
 
   return true;
@@ -215,11 +212,11 @@ function IsBehindOfTarget(source: unit, target: unit, tolerance: number): boolea
  * @param tolerance In degrees.
  */
 function IsFrontOfTarget(source: unit, target: unit, tolerance: number): boolean {
-  let num1 = AngleBetweenPointsC(target, source);
-  let face = GetUnitFacing(target);
-  let num2 = 0.5 * tolerance;
-  let num3 = 360 - num2;
-  let num4 = Math.abs(num1 - face);
+  const num1 = AngleBetweenPointsC(target, source);
+  const face = GetUnitFacing(target);
+  const num2 = 0.5 * tolerance;
+  const num3 = 360 - num2;
+  const num4 = Math.abs(num1 - face);
   if (num4 > num3) return num4 > num2;
 
   return true;

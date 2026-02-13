@@ -4,7 +4,6 @@
  A warcraft 3 reforged (aka. Refunded) maps that coded in [**TypeScript**](https://github.com/microsoft/TypeScript/) and powered by [**TypeScript to Lua**](https://github.com/TypeScriptToLua/TypeScriptToLua)
 
  You can donate if you want me to spend more time to develop this map
- (but wont goes more than 3-4 hours a day since i have a fulltime jobs to work on)
 
  [![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/trunghotran) [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/trantrungho71)
 
@@ -18,7 +17,7 @@
 
 ## Small infomation
 
- This is a customized and modified version of the the original template codes
+ This is a heavily customized and modified version of the the original template codes
  from cipherxof (triggerhappy), all changes has been made to it are all from me
  and other contributor (if they do exists except for dependabot)
 

@@ -13,6 +13,8 @@ const tan = math.tan;
 const atan = math.atan;
 const nmax = math.max;
 const nmin = math.min;
+const pow = Pow;
+
 
 type EasingFunction = (progress: number) => number;
 
@@ -31,12 +33,13 @@ declare interface Vector4 extends Vector3 {
   readonly w: number;
 }
 
-declare interface Quaternion extends Vector4 {}
+type Quaternion = Vector4
 
 /**
  * Value on this enum will be inlined by typescript! (assuming you are not enabling erasableSyntaxOnly)
  */
 export const enum MathConst {
+  // eslint-disable-next-line no-loss-of-precision
   PI = 3.141592653589793238462643383279502884,
   HALF_PI = PI * 0.5,
   NATURAL_LOG_2 = 0.693147181,
@@ -449,13 +452,12 @@ export class Vec3 implements Vector3 {
     let ilength = 0.0;
 
     // Vector3Normalize(*v1);
-    let vn: Vec3 = this;
-    length = sqrt(vn.x * vn.x + vn.y * vn.y + vn.z * vn.z);
+    length = sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     if (length == 0.0) length = 1.0;
     ilength = 1.0 / length;
-    let vx = vn.x * ilength;
-    let vy = vn.y * ilength;
-    let vz = vn.z * ilength;
+    const vx = this.x * ilength;
+    const vy = this.y * ilength;
+    const vz = this.z * ilength;
 
     // Vector3CrossProduct(*v1, *v2)
     let vn1x = vy * v.z - vz * v.y,
@@ -510,18 +512,18 @@ export class Vec3 implements Vector3 {
     // Vector3Normalize(axis);
     let length = sqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
     if (length == 0.0) length = 1.0;
-    let ilength = 1.0 / length;
-    let ax = axis.x * ilength;
-    let ay = axis.y * ilength;
-    let az = axis.z * ilength;
+    const ilength = 1.0 / length;
+    const ax = axis.x * ilength;
+    const ay = axis.y * ilength;
+    const az = axis.z * ilength;
 
     angle /= 2.0;
     let a = sin(angle);
-    let b = ax * a;
-    let c = ay * a;
-    let d = az * a;
+    const b = ax * a;
+    const c = ay * a;
+    const d = az * a;
     a = cos(angle);
-    let wx = b,
+    const wx = b,
       wy = c,
       wz = d;
 
@@ -1090,14 +1092,14 @@ export function LerpAngle(a: number, b: number, t: number) {
 }
 
 export function Distance(x1: number, y1: number, x2: number, y2: number) {
-  let dx = x1 - x2;
-  let dy = y1 - y2;
+  const dx = x1 - x2;
+  const dy = y1 - y2;
   return sqrt(dx * dx + dy * dy);
 }
 
 export function DistanceSquared(x1: number, y1: number, x2: number, y2: number) {
-  let dx = x1 - x2;
-  let dy = y1 - y2;
+  const dx = x1 - x2;
+  const dy = y1 - y2;
   return dx * dx + dy * dy;
 }
 
@@ -1131,7 +1133,7 @@ export class PerlinNoise {
   private static _corners: Vec2[] = [new Vec2(0, 0), new Vec2(0, 1), new Vec2(1, 0), new Vec2(1, 1)];
 
   static init(seed?: number) {
-    if (seed) SetRandomSeed(seed);
+    if (seed != null) SetRandomSeed(seed);
 
     for (let i = 0; i < 256; i++) {
       let gx = GetRandomReal(0, 1) * 2 - 1;
@@ -1159,12 +1161,13 @@ export class PerlinNoise {
   }
 
   static get(x: number, y: number) {
-    let cx = floor(x),
+    const cx = floor(x),
       cy = floor(y);
     let total = 0;
 
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let n = 0; n < PerlinNoise._corners.length; n++) {
-      let nv = PerlinNoise._corners[n];
+      const nv = PerlinNoise._corners[n];
 
       const ix = cx + nv.x,
         iy = cy + nv.y;
@@ -1174,7 +1177,7 @@ export class PerlinNoise {
       let index = PerlinNoise._permutationTable[ix % PerlinNoise._permuLen];
       index = PerlinNoise._permutationTable[(index + iy) % PerlinNoise._permuLen];
 
-      let grad = PerlinNoise._gradients[index % 256];
+      const grad = PerlinNoise._gradients[index % 256];
 
       let qx = abs(ux);
       qx = 1 - qx * qx * qx * (qx * (qx * 6 - 15) + 10);
