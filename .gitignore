@@ -98,6 +98,7 @@ typings/
 # Hidden
 maps/
 resources/
+map-data/
 
 # Testing buggy stuff
 test/
