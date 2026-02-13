@@ -298,8 +298,17 @@ callExpressionAction.set("compiletime", function (node: ts.CallExpression) {
   }
   let result = tryParseFunc(code, { objectData: objData, from4cc: cc2str, to4cc: str2cc, log: console.log });
 
-  if (typeof result === "number" || typeof result === "bigint"){
-    return ts.factory.createNumericLiteral(typeof result === "bigint" ? result.toString() : result);
+  if (typeof result === "number"){
+    return ts.factory.createNumericLiteral( result);
+  }
+  if (typeof result === "bigint") {
+    const v = result;
+    // clamp if out of range
+    if (v <= BigInt(Math.pow(-2, 31)+1)){
+      return ts.factory.createNumericLiteral(Math.pow(-2, 31)+1);
+    } else if (v >= BigInt(Math.pow(2, 31)-1)) {
+      return ts.factory.createNumericLiteral(Math.pow(2, 31)-1);
+    }
   }
 
   if (typeof result === "object") {

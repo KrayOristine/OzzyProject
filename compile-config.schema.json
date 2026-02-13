@@ -16,6 +16,10 @@
           "type": "string",
           "description": "Path to the output directory"
         },
+        "codeDir":{
+          "type": "string",
+          "description": "Path to the directory contain map code"
+        },
         "mapName":{
           "type":"string",
           "description": "Name of the target maps case-sensitive"

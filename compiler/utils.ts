@@ -10,6 +10,7 @@ export interface IProjectConfig {
   compilerOptions: {
     baseDir: string;
     outDir: string;
+    codeDir: string;
     mapName: string;
     scripts: {
       minify: boolean;
@@ -72,6 +73,7 @@ export function loadProjectConfig(): IProjectConfig {
       compilerOptions: {
         baseDir: "",
         outDir: "",
+        codeDir: "",
         mapName: "",
         scripts: {
           minify: false,
@@ -150,29 +152,6 @@ export function getFilesInDirectory(dir: string) {
   return files;
 }
 
-
-
-export function updateTSConfig(mapFolder: string) {
-  const tsconfig = loadTSConfig();
-  const plugin = tsconfig.compilerOptions.plugins;
-
-  plugin[1].enable = loadProjectConfig().compilerOptions.scripts.optimizeLevel > 1;
-  plugin[1].cfPrecision = 0;
-  plugin[0].mapDir = path.resolve("maps", mapFolder).replace(/\\/g, "/");
-  plugin[0].entryFile = path.resolve(tsconfig.tstl.luaBundleEntry).replace(/\\/g, "/");
-  plugin[0].outputDir = path.resolve("dist", mapFolder).replace(/\\/g, "/");
-
-  writeFileSync("tsconfig.json", JSON.stringify(tsconfig, undefined, 2));
-}
-
-export function updateProjectConfig() {
-  const project = loadProjectConfig();
-
-  project.compilerOptions.mapName = getMapName();
-
-  writeFileSync("config.json", JSON.stringify(project, undefined, 4));
-}
-
 export function getMapName() {
   if (cache.has("mapName")) return cache.get("mapName");
 
@@ -196,13 +175,13 @@ export const logger = createLogger({
       format: combine(colorize(), timestamp(), printf(loggerFormatFunc)),
     }),
     new transports.File({
-      filename: "project.log",
+      filename: "./project.log",
       level: 'info,error,debug,crit,alert',
       format: combine(timestamp(), printf(loggerFormatFunc)),
       maxFiles: 1,
       lazy: true,
       options:{
-        flags: 'w+'
+        flags: 'a+'
       }
     }),
   ],

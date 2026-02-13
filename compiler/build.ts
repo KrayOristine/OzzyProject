@@ -1,6 +1,6 @@
 import * as fs from "fs-extra";
 import * as path from "path";
-import War3Map from "@/mdx-m3/parsers/w3x/map";
+import War3Map from "./mdx-m3/parsers/w3x/map";
 import { getFilesInDirectory, loadProjectConfig, logger, toArrayBuffer } from "./utils";
 import { compileMap } from "@/compiler";
 

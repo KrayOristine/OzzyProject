@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ObjectData = void 0;
-const file_1 = require("mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3d/file");
-const file_2 = require("mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file");
+const file_1 = require("../mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3d/file");
+const file_2 = require("../mdx-m3-viewer-th/dist/cjs/parsers/w3x/w3u/file");
 const container_1 = require("./container");
 const units_1 = require("./generated/units");
 const items_1 = require("./generated/items");

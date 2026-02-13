@@ -1,11 +1,11 @@
-import { getMapName, IProjectConfig, logger, updateProjectConfig, updateTSConfig } from "./utils";
+import { getMapName, IProjectConfig, logger } from "./utils";
 import { xxh3 } from "@node-rs/xxhash";
 import lm from "./luamin/luamin";
 import fsa from "fs/promises";
 import fs from "fs";
-import {transpileProject} from "typescript-to-lua";
 import { DiagnosticCategory } from "typescript";
 import { processPreserve } from "./processPreserve";
+import { mapTranspile } from './transpiler';
 
 interface MapFileCache {
   // filePath: "hash"
@@ -110,6 +110,8 @@ export async function mapBuildCache(mapUrl: string, mapDest: string) {
   return copyAndCache(mapUrl, mapDest + getMapName(), cachePath);
 }
 
+
+
 /**
  *
  */
@@ -130,20 +132,27 @@ export async function compileMap(config: IProjectConfig, minify: boolean) {
   await mapBuildCache(config.compilerOptions.baseDir, `${config.compilerOptions.outDir}/dist/`);
 
   logger.info("Transpiling code...");
-  let r = transpileProject("../src/tsconfig.json");
+  let r = mapTranspile(config.compilerOptions.codeDir);
+  try {
+    const emit = await r;
 
-  if (r.diagnostics.length > 0) {
-    var hasErr = false;
-    for (let i = 0; i < r.diagnostics.length; i++) {
-      let diag = r.diagnostics[i];
-      if (diag.category === DiagnosticCategory.Error) {
-        if (!hasErr) logger.error("Error during transpilation!");
-        hasErr = true;
-        logger.error(diag.messageText.toString());
+    if (emit.diagnostics.length > 0) {
+      var hasErr = false;
+      for (let i = 0; i < emit.diagnostics.length; i++) {
+        let diag = emit.diagnostics[i];
+        if (diag.category === DiagnosticCategory.Error) {
+          hasErr = true;
+          logger.info(JSON.stringify(diag));
+        }
+      }
+
+      if (hasErr){
+        throw "Error during transpilation";
       }
     }
-
-    return false;
+  } catch (e){
+    logger.error(e);
+    return;
   }
 
   if (!fs.existsSync(tsLua)) {

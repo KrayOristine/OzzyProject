@@ -35,15 +35,15 @@
       "war3-transformer.d.ts",
       "war3map.d.ts"
     ],
-    "typeRoots": ["./types", "../node_modules/@types"]
+    "typeRoots": ["./types", "./lua", "../node_modules/@types"]
   },
-  "include": ["./**/*.ts", "./types/*.d.ts", "./lua/**/*.d.ts"],
+  "include": ["./**/*.ts"],
   "exclude": ["types"],
   "tstl": {
     "luaTarget": "5.3",
     "buildMode": "default",
-    "luaBundleEntry": "./src/game.ts",
-    "luaBundle": "./dist/tstl_output.lua",
+    "luaBundleEntry": "./game.ts",
+    "luaBundle": "../dist/tstl_output.lua",
     "noImplicitSelf": true,
     "noHeader": true,
     "luaLibImport": "require",
@@ -52,7 +52,7 @@
     "tstlVerbose": true,
     "luaPlugins": [
       {
-        "name": "./compiler/tstl-plugs.ts"
+        "name": "../compiler/tstl-plugs.ts"
       }
     ],
     "noResolvePaths": ["typescript", "typescript-to-lua"]

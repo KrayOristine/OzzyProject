@@ -18,7 +18,8 @@
     "target": "ESNext",
     "lib": ["ESNext"],
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+
   },
   "include": ["./**/*.ts"],
   "exclude": [],
