@@ -51,7 +51,7 @@
     "patchwork-mapconverter": "file:./submodules/Patchwork-MapConverter",
     "seedrandom": "^3.0.5",
     "ts-node": "^10.9.2",
-    "ts-patch": "^3.3.0",
+    "ts-patch": "^4.0.1",
     "tsconfig-paths": "4.2.0",
     "tsutils": "3.21.0",
     "typescript": "^5.9.3",
